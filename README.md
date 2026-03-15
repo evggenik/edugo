@@ -36,3 +36,9 @@ Years later I started learning Java and became interested in software developmen
 
 - JUnit
 - Spring Security Test
+
+## Database Schema
+
+Here is the database structure for EduGo:
+
+![EduGo Database Schema](docs/school.jpg)
