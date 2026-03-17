@@ -42,3 +42,17 @@ Years later I started learning Java and became interested in software developmen
 Here is the database structure for EduGo:
 
 ![EduGo Database Schema](docs/school.jpg)
+
+## Local configuration
+
+Create a local configuration file for spring boot:
+
+```bash
+cp application-local.yml.example application-local.yml
+```
+Then fill in your local database credentials.
+
+```bash
+cp application-local.yml.example application-local.yml
+```
+Edit the .env file with your own database credentials for docker-compose file.

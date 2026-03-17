@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# custom evironment
+.env
+docker-compose.override.yml
+application-local.yml
