@@ -36,3 +36,6 @@ build/
 .env
 docker-compose.override.yml
 application-local.yml
+
+###
+.qwen
