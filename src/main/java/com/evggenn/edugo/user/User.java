@@ -2,7 +2,6 @@ package com.evggenn.edugo.user;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -57,14 +56,12 @@ public class User {
     }
 
     @Builder
-    public User(Long id,
-                String email,
+    public User(String email,
                 String password,
                 String firstName,
                 String lastName,
                 String middleName,
                 String avatarUrl) {
-        this.id = id;
         this.email = email;
         this.password = password;
         this.firstName = firstName;
