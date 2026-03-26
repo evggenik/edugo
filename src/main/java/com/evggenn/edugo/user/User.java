@@ -10,6 +10,7 @@ import java.util.Set;
 @Table(name = "users")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -53,20 +54,5 @@ public class User {
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) createdAt = Instant.now();
-    }
-
-    @Builder
-    public User(String email,
-                String password,
-                String firstName,
-                String lastName,
-                String middleName,
-                String avatarUrl) {
-        this.email = email;
-        this.password = password;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.middleName = middleName;
-        this.avatarUrl = avatarUrl;
     }
 }
