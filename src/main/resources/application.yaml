@@ -25,4 +25,4 @@ server:
 
 jwt:
   secret-key: ${JWT_SECRET:dev-secret-key-change-in-production-32chars}
-  expiration-ms: 900000
+  expiration-ms: 86400000
