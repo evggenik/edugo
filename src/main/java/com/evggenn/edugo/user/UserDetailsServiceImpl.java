@@ -1,6 +1,5 @@
 package com.evggenn.edugo.user;
 
-import com.evggenn.edugo.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -10,12 +9,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    private final UserRepository userRepo;
+    private final UserService userService;
 
     @Override
     public UserDetails loadUserByUsername(String email) {
-        User user = userRepo.findByEmailWithRoles(email)
-                .orElseThrow(() -> new UserNotFoundException(email));
+        User user = userService.findByEmailWithRolesOrThrow(email);
         return new CustomUserDetails(user);
     }
 }

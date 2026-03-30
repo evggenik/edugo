@@ -23,11 +23,6 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException(email));
     }
 
-    @Transactional(readOnly = true)
-    public boolean existsByEmail(@NotNull String email) {
-        return userRepo.existsByEmail(email);
-    }
-
     @Transactional
     public User createUser(String email,
                            String rawPassword,
