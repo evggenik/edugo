@@ -1,6 +1,5 @@
 package com.evggenn.edugo.auth;
 
-import com.evggenn.edugo.user.CustomUserDetails;
 import com.evggenn.edugo.user.User;
 import com.evggenn.edugo.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +43,7 @@ public class AuthService {
                 )
         );
 
-        var userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(request.getEmail());
+        var userDetails = userDetailsService.loadUserByUsername(request.getEmail());
         String token = jwtService.generateToken(userDetails);
         return new LoginResponse(token, request.getEmail());
     }
