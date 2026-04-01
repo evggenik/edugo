@@ -44,7 +44,9 @@ public class AuthService {
         );
 
         var userDetails = userDetailsService.loadUserByUsername(request.getEmail());
+
         String token = jwtService.generateToken(userDetails);
+
         return new LoginResponse(token, request.getEmail());
     }
 }
