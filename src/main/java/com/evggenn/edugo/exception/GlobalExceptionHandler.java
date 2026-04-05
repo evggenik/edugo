@@ -14,6 +14,18 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(SchoolClassNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleSchoolClassNotFound(SchoolClassNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(SchoolClassAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleSchoolClassExists(SchoolClassAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
     @ExceptionHandler(SubjectAlreadyExistsException.class)
     public ResponseEntity<Map<String, String>> handleSubjectExists(SubjectAlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
