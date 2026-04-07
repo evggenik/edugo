@@ -1,6 +1,7 @@
 package com.evggenn.edugo.schoolclass;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,4 +13,13 @@ public interface SchoolClassRepository extends JpaRepository<SchoolClass, Long> 
     boolean existsByNameAndAcademicYear(String name, String academicYear);
 
     List<SchoolClass> findAllByAcademicYear(String academicYear);
+
+    @Query("""
+    SELECT CASE WHEN COUNT(sc) > 0 THEN true ELSE false END
+    FROM SchoolClass sc
+    JOIN sc.students s
+    WHERE s.id = :studentId
+      AND sc.academicYear = :academicYear
+    """)
+    boolean existsByStudentIdAndAcademicYear(Long studentId, String academicYear);
 }

@@ -1,8 +1,7 @@
 package com.evggenn.edugo.schoolclass;
 
-import com.evggenn.edugo.exception.SchoolClassAlreadyExistsException;
-import com.evggenn.edugo.exception.SchoolClassNotFoundException;
-import com.evggenn.edugo.exception.UserNotFoundException;
+import com.evggenn.edugo.exception.*;
+import com.evggenn.edugo.user.Role;
 import com.evggenn.edugo.user.User;
 import com.evggenn.edugo.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,9 +35,7 @@ public class SchoolClassService {
                                      String newYear,
                                      Long teacherId) {
 
-        SchoolClass updatedClass = schoolClassRepository.findById(id).orElseThrow(
-                () -> new SchoolClassNotFoundException(id)
-        );
+        SchoolClass updatedClass = getClassOrThrow(id);
 
         if (schoolClassRepository.existsByNameAndAcademicYear(newName, newYear) &&
                 !(updatedClass.getName().equalsIgnoreCase(newName) &&
@@ -46,57 +43,67 @@ public class SchoolClassService {
             throw new SchoolClassAlreadyExistsException(newName, newYear);
         }
 
-        User updatedTeacher = userRepository.findById(teacherId).orElseThrow(
-                () -> new UserNotFoundException(teacherId));
+        if (teacherId != null) {
+            User updatedTeacher = userRepository.findById(teacherId).orElseThrow(
+                    () -> new UserNotFoundException(teacherId));
+            updatedClass.setTeacher(updatedTeacher);
+        } else {
+            updatedClass.setTeacher(null);
+        }
 
         updatedClass.setName(newName);
         updatedClass.setAcademicYear(newYear);
-        updatedClass.setTeacher(updatedTeacher);
 
-        return schoolClassRepository.save(updatedClass);
+        return updatedClass;
     }
 
     @Transactional
     public void addStudentToClass(Long classId, Long studentId) {
 
-        SchoolClass schoolClass = schoolClassRepository.findById(classId).orElseThrow(
-                () -> new SchoolClassNotFoundException(classId)
-        );
+        SchoolClass schoolClass = getClassOrThrow(classId);
 
-        User student = userRepository.findById(studentId).orElseThrow(
+        User student = userRepository.findByIdWithRoles(studentId).orElseThrow(
                 () -> new UserNotFoundException(studentId));
 
-        schoolClass.getStudents().add(student);
+        if (student.getRoles().stream()
+                .noneMatch(role -> role.getName().equals(Role.STUDENT))) {
+            throw new NotStudentException(studentId);
+        }
 
-        schoolClassRepository.save(schoolClass);
+        if (schoolClassRepository.existsByStudentIdAndAcademicYear(
+                studentId,
+                schoolClass.getAcademicYear())) {
+            throw new StudentAlreadyInClassException(studentId, schoolClass.getAcademicYear());
+        }
+
+        schoolClass.getStudents().add(student);
     }
 
     @Transactional
     public void removeStudentFromClass(Long classId, Long studentId) {
 
-        SchoolClass schoolClass = schoolClassRepository.findById(classId).orElseThrow(
-                () -> new SchoolClassNotFoundException(classId)
-        );
+        SchoolClass schoolClass = getClassOrThrow(classId);
 
         User student = userRepository.findById(studentId).orElseThrow(
                 () -> new UserNotFoundException(studentId));
 
         schoolClass.getStudents().remove(student);
-
-        schoolClassRepository.save(schoolClass);
     }
 
     @Transactional(readOnly = true)
     public SchoolClass getSchoolClass(Long classId) {
 
-        return schoolClassRepository.findById(classId).orElseThrow(
-                () -> new SchoolClassNotFoundException(classId)
-        );
+        return getClassOrThrow(classId);
     }
 
     @Transactional(readOnly = true)
     public List<SchoolClass> getAllClasses(String academicYear) {
 
         return schoolClassRepository.findAllByAcademicYear(academicYear);
+    }
+
+    private SchoolClass getClassOrThrow(Long classId) {
+        return schoolClassRepository.findById(classId).orElseThrow(
+                () -> new SchoolClassNotFoundException(classId));
     }
 }
