@@ -58,7 +58,7 @@ public class SchoolClassService {
     }
 
     @Transactional
-    public void addStudentToClass(Long classId, Long studentId) {
+    public SchoolClass addStudentToClass(Long classId, Long studentId) {
 
         SchoolClass schoolClass = getClassOrThrow(classId);
 
@@ -77,10 +77,11 @@ public class SchoolClassService {
         }
 
         schoolClass.getStudents().add(student);
+        return schoolClass;
     }
 
     @Transactional
-    public void removeStudentFromClass(Long classId, Long studentId) {
+    public SchoolClass removeStudentFromClass(Long classId, Long studentId) {
 
         SchoolClass schoolClass = getClassOrThrow(classId);
 
@@ -88,6 +89,7 @@ public class SchoolClassService {
                 () -> new UserNotFoundException(studentId));
 
         schoolClass.getStudents().remove(student);
+        return schoolClass;
     }
 
     @Transactional(readOnly = true)

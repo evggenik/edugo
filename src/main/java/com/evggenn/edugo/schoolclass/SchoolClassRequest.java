@@ -1,7 +1,9 @@
 package com.evggenn.edugo.schoolclass;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record SchoolClassRequest(
-        String name,
-        String academicYear,
+        @NotBlank String name,
+        @NotBlank String academicYear,
         Long teacherId
 ) {}

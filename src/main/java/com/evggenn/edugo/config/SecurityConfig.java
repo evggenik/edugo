@@ -28,9 +28,13 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/classes/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/subjects/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/classes/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/subjects/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/classes/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/subjects/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/classes/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
