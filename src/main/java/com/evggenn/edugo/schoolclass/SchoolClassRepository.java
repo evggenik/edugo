@@ -9,11 +9,7 @@ import java.util.Optional;
 
 public interface SchoolClassRepository extends JpaRepository<SchoolClass, Long> {
 
-    Optional<SchoolClass> findByNameAndAcademicYear(String name, String academicYear);
-
     boolean existsByNameAndAcademicYear(String name, String academicYear);
-
-    List<SchoolClass> findAllByAcademicYear(String academicYear);
 
     @Query("""
     SELECT CASE WHEN COUNT(sc) > 0 THEN true ELSE false END

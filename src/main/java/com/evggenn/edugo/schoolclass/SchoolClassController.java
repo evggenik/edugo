@@ -14,31 +14,23 @@ import java.util.List;
 public class SchoolClassController {
 
     private final SchoolClassService classService;
-    private final SchoolClassMapper mapper;
 
     @PostMapping
-    public ResponseEntity<SchoolClassResponse> createClass(@Valid @RequestBody SchoolClassRequest request) {
-        SchoolClass schoolClass = classService.createClass(request.name(), request.academicYear());
-
-        SchoolClassResponse response = mapper.toResponse(schoolClass);
+    public ResponseEntity<SchoolClassResponse> createClass(@Valid @RequestBody SchoolClassCreateRequest request) {
+        SchoolClassResponse response = classService.createClass(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/{classId}")
+    @PatchMapping("/{classId}")
     public ResponseEntity<SchoolClassResponse> updateClass(
             @PathVariable Long classId,
-            @Valid @RequestBody SchoolClassRequest request
+            @Valid @RequestBody SchoolClassUpdateRequest request
     ) {
-        SchoolClass schoolClass = classService.updateClass(
+        SchoolClassResponse response = classService.updateClass(
                 classId,
-                request.name(),
-                request.academicYear(),
-                request.teacherId()
+                request
         );
-
-        SchoolClassResponse response = mapper.toResponse(schoolClass);
-
         return ResponseEntity.ok(response);
     }
 
@@ -46,29 +38,31 @@ public class SchoolClassController {
     public ResponseEntity<SchoolClassResponse> addStudentToClass(
             @PathVariable Long classId,
             @PathVariable Long studentId) {
-        SchoolClass schoolClass = classService.addStudentToClass(classId, studentId);
-        return ResponseEntity.ok(mapper.toResponse(schoolClass));
+        SchoolClassResponse response = classService.addStudentToClass(classId, studentId);
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{classId}/students/{studentId}")
     public ResponseEntity<SchoolClassResponse> removeStudentFromClass(
             @PathVariable Long classId,
             @PathVariable Long studentId) {
-        SchoolClass schoolClass = classService.removeStudentFromClass(classId, studentId);
-        return ResponseEntity.ok(mapper.toResponse(schoolClass));
+        SchoolClassResponse response = classService.removeStudentFromClass(classId, studentId);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{classId}")
     public ResponseEntity<SchoolClassResponse> getClass(
             @PathVariable Long classId) {
 
-        SchoolClass schoolClass = classService.getSchoolClass(classId);
-        return ResponseEntity.ok(mapper.toResponse(schoolClass));
+        SchoolClassResponse response = classService.getSchoolClass(classId);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping
     public ResponseEntity<List<SchoolClassResponse>> getAllClasses(
             @RequestParam("academicYear") String academicYear) {
-        return ResponseEntity.ok(classService.getAllClassesResponse(academicYear));
+        return ResponseEntity.ok(classService.getAllClasses(academicYear));
     }
 }

@@ -4,6 +4,7 @@ import com.evggenn.edugo.exception.*;
 import com.evggenn.edugo.user.Role;
 import com.evggenn.edugo.user.User;
 import com.evggenn.edugo.user.UserRepository;
+import com.evggenn.edugo.util.AcademicYearUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,29 +20,40 @@ public class SchoolClassService {
     private final SchoolClassMapper mapper;
 
     @Transactional
-    public SchoolClass createClass(String name, String academicYear) {
+    public SchoolClassResponse createClass(SchoolClassCreateRequest request) {
 
-        if (schoolClassRepository.existsByNameAndAcademicYear(name, academicYear)) {
-            throw new SchoolClassAlreadyExistsException(name, academicYear);
+        String name = request.name();
+
+        if (schoolClassRepository.existsByNameAndAcademicYear(
+                name, AcademicYearUtil.getCurrentAcademicYear())) {
+            throw new SchoolClassAlreadyExistsException(name);
         }
 
-        SchoolClass schoolClass = new SchoolClass(name, academicYear);
+        SchoolClass schoolClass = new SchoolClass(name, AcademicYearUtil.getCurrentAcademicYear());
 
-        return schoolClassRepository.save(schoolClass);
+        SchoolClass saved = schoolClassRepository.save(schoolClass);
+
+        return mapper.toResponse(saved);
     }
 
     @Transactional
-    public SchoolClass updateClass(Long id,
-                                     String newName,
-                                     String newYear,
-                                     Long teacherId) {
+    public SchoolClassResponse updateClass(Long id, SchoolClassUpdateRequest request) {
 
         SchoolClass updatedClass = getClassOrThrow(id);
 
-        if (schoolClassRepository.existsByNameAndAcademicYear(newName, newYear) &&
-                !(updatedClass.getName().equalsIgnoreCase(newName) &&
-                        updatedClass.getAcademicYear().equals(newYear))) {
-            throw new SchoolClassAlreadyExistsException(newName, newYear);
+        if (!updatedClass.getAcademicYear().equals(AcademicYearUtil.getCurrentAcademicYear())) {
+                 throw new ClassIsArchivedException(updatedClass.getAcademicYear());
+        }
+
+        String newName = request.name();
+        Long teacherId = request.teacherId();
+
+        if (newName != null &&
+                schoolClassRepository.existsByNameAndAcademicYear(
+                        newName, AcademicYearUtil.getCurrentAcademicYear()) &&
+                !updatedClass.getName().equalsIgnoreCase(newName)) {
+
+            throw new SchoolClassAlreadyExistsException(newName);
         }
 
         if (teacherId != null) {
@@ -49,15 +61,15 @@ public class SchoolClassService {
                     () -> new UserNotFoundException(teacherId));
             updatedClass.setTeacher(updatedTeacher);
         }
+        if (newName != null) {
+            updatedClass.setName(newName);
+        }
 
-        updatedClass.setName(newName);
-        updatedClass.setAcademicYear(newYear);
-
-        return updatedClass;
+        return mapper.toResponse(updatedClass);
     }
 
     @Transactional
-    public SchoolClass addStudentToClass(Long classId, Long studentId) {
+    public SchoolClassResponse addStudentToClass(Long classId, Long studentId) {
 
         SchoolClass schoolClass = getClassOrThrow(classId);
 
@@ -74,13 +86,13 @@ public class SchoolClassService {
                 schoolClass.getAcademicYear())) {
             throw new StudentAlreadyInClassException(studentId, schoolClass.getAcademicYear());
         }
-
         schoolClass.getStudents().add(student);
-        return schoolClass;
+
+        return mapper.toResponse(schoolClass);
     }
 
     @Transactional
-    public SchoolClass removeStudentFromClass(Long classId, Long studentId) {
+    public SchoolClassResponse removeStudentFromClass(Long classId, Long studentId) {
 
         SchoolClass schoolClass = getClassOrThrow(classId);
 
@@ -88,17 +100,19 @@ public class SchoolClassService {
                 () -> new UserNotFoundException(studentId));
 
         schoolClass.getStudents().remove(student);
-        return schoolClass;
+        return mapper.toResponse(schoolClass);
     }
 
     @Transactional(readOnly = true)
-    public SchoolClass getSchoolClass(Long classId) {
+    public SchoolClassResponse getSchoolClass(Long classId) {
 
-        return getClassOrThrow(classId);
+        SchoolClass schoolClass = getClassOrThrow(classId);
+
+        return mapper.toResponse(schoolClass);
     }
 
     @Transactional(readOnly = true)
-    public List<SchoolClassResponse> getAllClassesResponse(String academicYear) {
+    public List<SchoolClassResponse> getAllClasses(String academicYear) {
         List<SchoolClass> classes = schoolClassRepository.findAllByYearWithTeacher(academicYear);
         return classes.stream()
                          .map(mapper::toResponse)
