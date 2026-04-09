@@ -69,10 +69,6 @@ public class SchoolClassController {
     @GetMapping
     public ResponseEntity<List<SchoolClassResponse>> getAllClasses(
             @RequestParam("academicYear") String academicYear) {
-
-        List<SchoolClass> schoolClassList = classService.getAllClasses(academicYear);
-        return ResponseEntity.ok(schoolClassList.stream()
-                .map(mapper::toResponse)
-                .toList());
+        return ResponseEntity.ok(classService.getAllClassesResponse(academicYear));
     }
 }

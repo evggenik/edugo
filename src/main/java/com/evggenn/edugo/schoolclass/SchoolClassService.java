@@ -16,6 +16,7 @@ public class SchoolClassService {
 
     private final SchoolClassRepository schoolClassRepository;
     private final UserRepository userRepository;
+    private final SchoolClassMapper mapper;
 
     @Transactional
     public SchoolClass createClass(String name, String academicYear) {
@@ -47,8 +48,6 @@ public class SchoolClassService {
             User updatedTeacher = userRepository.findById(teacherId).orElseThrow(
                     () -> new UserNotFoundException(teacherId));
             updatedClass.setTeacher(updatedTeacher);
-        } else {
-            updatedClass.setTeacher(null);
         }
 
         updatedClass.setName(newName);
@@ -99,13 +98,15 @@ public class SchoolClassService {
     }
 
     @Transactional(readOnly = true)
-    public List<SchoolClass> getAllClasses(String academicYear) {
-
-        return schoolClassRepository.findAllByAcademicYear(academicYear);
+    public List<SchoolClassResponse> getAllClassesResponse(String academicYear) {
+        List<SchoolClass> classes = schoolClassRepository.findAllByYearWithTeacher(academicYear);
+        return classes.stream()
+                         .map(mapper::toResponse)
+                         .toList();
     }
 
     private SchoolClass getClassOrThrow(Long classId) {
-        return schoolClassRepository.findById(classId).orElseThrow(
+        return schoolClassRepository.findByIdWithDetails(classId).orElseThrow(
                 () -> new SchoolClassNotFoundException(classId));
     }
 }
