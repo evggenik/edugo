@@ -31,6 +31,12 @@ public class SchoolClassService {
 
         SchoolClass schoolClass = new SchoolClass(name, AcademicYearUtil.getCurrentAcademicYear());
 
+        if (request.teacherId() != null) {
+            User teacher = userRepository.findById(request.teacherId()).orElseThrow(
+                    () -> new UserNotFoundException(request.teacherId()));
+            schoolClass.setTeacher(teacher);
+        }
+
         SchoolClass saved = schoolClassRepository.save(schoolClass);
 
         return mapper.toResponse(saved);
