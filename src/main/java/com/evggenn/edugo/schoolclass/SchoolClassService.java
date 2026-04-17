@@ -100,12 +100,12 @@ public class SchoolClassService {
     @Transactional
     public SchoolClassResponse removeStudentFromClass(Long classId, Long studentId) {
 
-        SchoolClass schoolClass = getClassOrThrow(classId);
-
         User student = userRepository.findById(studentId).orElseThrow(
                 () -> new UserNotFoundException(studentId));
 
-        schoolClass.getStudents().remove(student);
+        SchoolClass schoolClass = getClassOrThrow(classId);
+
+        schoolClass.getStudents().remove(student); //quietly remove without checking
         return mapper.toResponse(schoolClass);
     }
 
