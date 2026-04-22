@@ -2,6 +2,7 @@ package com.evggenn.edugo.period;
 
 import com.evggenn.edugo.period.exception.InvalidPeriodDatesException;
 import com.evggenn.edugo.period.exception.PeriodAlreadyExistsException;
+import com.evggenn.edugo.period.exception.PeriodNotFoundException;
 import com.evggenn.edugo.period.exception.PeriodOverlapException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,6 +12,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -92,12 +96,127 @@ class PeriodServiceTest {
         when(periodRepository.existsByNameAndAcademicYear("2 четверть", CURRENT_YEAR)).thenReturn(false);
         when(periodRepository.existsOverlappingPeriod(CURRENT_YEAR, newStart, newEnd)).thenReturn(true);
 
-
         assertThatThrownBy(() -> periodService.createPeriod("2 четверть", newStart, newEnd, CURRENT_YEAR))
                 .isInstanceOf(PeriodOverlapException.class);
 
         verify(periodRepository).existsByNameAndAcademicYear("2 четверть", CURRENT_YEAR);
         verify(periodRepository).existsOverlappingPeriod(CURRENT_YEAR, newStart, newEnd);
         verify(periodRepository, never()).save(any());
+    }
+
+    @Test
+    void updatePeriod_shouldUpdate_whenValid() {
+        Period existingPeriod = new Period(
+                "1 quarter",
+                LocalDate.of(2025, 9, 1),
+                LocalDate.of(2025, 10, 30),
+                CURRENT_YEAR
+        );
+        Long updatedId = 1L;
+        LocalDate newStart = LocalDate.of(2025, 9, 2);
+        LocalDate newEnd = LocalDate.of(2025, 10, 29);
+
+        when(periodRepository.existsOverlappingPeriodExcludingId(CURRENT_YEAR, newStart, newEnd, updatedId))
+                .thenReturn(false);
+        when(periodRepository.findByIdAndAcademicYear(updatedId, CURRENT_YEAR))
+                .thenReturn(Optional.of(existingPeriod));
+
+        Period result = periodService.updatePeriod(updatedId, newStart, newEnd);
+
+        assertThat(result).isSameAs(existingPeriod);
+        assertThat(result.getName()).isEqualTo("1 quarter");
+        assertThat(result.getStartDate()).isEqualTo(newStart);
+        assertThat(result.getEndDate()).isEqualTo(newEnd);
+    }
+
+    @Test
+    void updatePeriod_shouldThrow_whenPeriodNotFound() {
+        when(periodRepository.findByIdAndAcademicYear(1L, CURRENT_YEAR))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> periodService.updatePeriod(1L,
+                LocalDate.of(2025, 9, 2),
+                LocalDate.of(2025, 9, 3)))
+                .isInstanceOf(PeriodNotFoundException.class);
+
+        verify(periodRepository).findByIdAndAcademicYear(1L, CURRENT_YEAR);
+        verify(periodRepository, never()).existsOverlappingPeriodExcludingId(any(), any(), any(), any());
+    }
+
+    @Test
+    void updatePeriod_shouldThrow_whenDatesOverlap() {
+        Long updatedId = 1L;
+        LocalDate newStart = LocalDate.of(2025, 10, 25);
+        LocalDate newEnd = LocalDate.of(2025, 11, 29);
+
+        when(periodRepository.findByIdAndAcademicYear(updatedId, CURRENT_YEAR))
+                .thenReturn(Optional.of(new Period()));
+
+        when(periodRepository.existsOverlappingPeriodExcludingId(CURRENT_YEAR, newStart, newEnd, updatedId))
+                .thenReturn(true);
+
+        assertThatThrownBy(() -> periodService.updatePeriod(updatedId, newStart, newEnd))
+                .isInstanceOf(PeriodOverlapException.class);
+
+        verify(periodRepository).findByIdAndAcademicYear(1L, CURRENT_YEAR);
+        verify(periodRepository).existsOverlappingPeriodExcludingId(CURRENT_YEAR, newStart, newEnd, updatedId);
+    }
+
+    @Test
+    void updatePeriod_shouldThrow_whenStartAfterEnd() {
+        Long updatedId = 1L;
+        LocalDate newStart = LocalDate.of(2025, 11, 25);
+        LocalDate newEnd = LocalDate.of(2025, 10, 29);
+
+        when(periodRepository.findByIdAndAcademicYear(updatedId, CURRENT_YEAR))
+                .thenReturn(Optional.of(new Period()));
+
+        assertThatThrownBy(() -> periodService.updatePeriod(updatedId, newStart, newEnd))
+                .isInstanceOf(InvalidPeriodDatesException.class);
+
+        verify(periodRepository).findByIdAndAcademicYear(1L, CURRENT_YEAR);
+        verify(periodRepository, never()).existsOverlappingPeriodExcludingId(CURRENT_YEAR, newStart, newEnd, updatedId);
+    }
+
+    @Test
+    void getPeriod_shouldReturnPeriod_whenIdExists() {
+        Period existingPeriod = new Period();
+
+        when(periodRepository.findByIdAndAcademicYear(1L, CURRENT_YEAR)).thenReturn(Optional.of(existingPeriod));
+
+        Period result = periodService.getPeriod(1L);
+
+        assertThat(result).isSameAs(existingPeriod);
+    }
+
+    @Test
+    void getPeriod_shouldThrow_whenNotFound() {
+        when(periodRepository.findByIdAndAcademicYear(1L, CURRENT_YEAR))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> periodService.getPeriod(1L))
+                .isInstanceOf(PeriodNotFoundException.class);
+    }
+
+    @Test
+    void getAllPeriods_shouldReturnList_whenPeriodsExist() {
+        List<Period> existingPeriods = List.of(new Period(), new Period());
+
+        when(periodRepository.findAllByAcademicYear(CURRENT_YEAR)).thenReturn(existingPeriods);
+
+        List<Period> result = periodService.getAllPeriods();
+
+        assertThat(result).isSameAs(existingPeriods);
+        assertThat(result).containsExactlyElementsOf(existingPeriods);
+    }
+
+    @Test
+    void getAllPeriods_shouldReturnEmptyList_whenNoPeriodsExist() {
+        when(periodRepository.findAllByAcademicYear(CURRENT_YEAR))
+                .thenReturn(Collections.emptyList());
+
+        List<Period> result = periodService.getAllPeriods();
+
+        assertThat(result).isEmpty();
     }
 }
