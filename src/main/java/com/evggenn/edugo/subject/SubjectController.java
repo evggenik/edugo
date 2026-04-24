@@ -21,7 +21,7 @@ public class SubjectController {
         return ResponseEntity.status(HttpStatus.CREATED).body(subject);
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<Subject> updateSubject(
             @PathVariable Long id,
             @Valid @RequestBody SubjectRequest subjectRequest
