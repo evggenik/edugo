@@ -20,7 +20,8 @@ private final PeriodRepository periodRepository;
 
     @Transactional
     public Period createPeriod(
-            String name, LocalDate newStart, LocalDate newEnd, String currentYear) {
+            String name, LocalDate newStart, LocalDate newEnd) {
+        String currentYear = AcademicYearUtil.getCurrentAcademicYear();
 
         if (!newStart.isBefore(newEnd)) {
             throw new InvalidPeriodDatesException(newStart, newEnd);
@@ -38,8 +39,10 @@ private final PeriodRepository periodRepository;
 
         return periodRepository.save(period);
     }
+
     @Transactional
     public Period updatePeriod(Long updatedId,
+                               String newName,
                                LocalDate newStart,
                                LocalDate newEnd) {
         String currentYear = AcademicYearUtil.getCurrentAcademicYear();
@@ -51,10 +54,16 @@ private final PeriodRepository periodRepository;
             throw new InvalidPeriodDatesException(newStart, newEnd);
         }
 
+        if (!period.getName().equals(newName) &&
+                periodRepository.existsByNameAndAcademicYear(newName, currentYear)) {
+            throw new PeriodAlreadyExistsException(newName, currentYear);
+        }
+
         if (periodRepository.existsOverlappingPeriodExcludingId(currentYear, newStart, newEnd,  updatedId)) {
             throw new PeriodOverlapException(currentYear);
         }
 
+        period.setName(newName);
         period.setStartDate(newStart);
         period.setEndDate(newEnd);
 
