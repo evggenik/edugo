@@ -1,9 +1,9 @@
 package com.evggenn.edugo.exception;
 
-import com.evggenn.edugo.period.exception.InvalidPeriodDatesException;
-import com.evggenn.edugo.period.exception.PeriodAlreadyExistsException;
-import com.evggenn.edugo.period.exception.PeriodNotFoundException;
-import com.evggenn.edugo.period.exception.PeriodOverlapException;
+import com.evggenn.edugo.term.exception.InvalidTermDatesException;
+import com.evggenn.edugo.term.exception.TermAlreadyExistsException;
+import com.evggenn.edugo.term.exception.TermNotFoundException;
+import com.evggenn.edugo.term.exception.TermOverlapException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -25,26 +25,26 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "Invalid request format"));
     }
 
-    @ExceptionHandler(InvalidPeriodDatesException.class)
-    public ResponseEntity<Map<String, String>> handlePeriodOverlap(InvalidPeriodDatesException ex) {
+    @ExceptionHandler(InvalidTermDatesException.class)
+    public ResponseEntity<Map<String, String>> handlePeriodOverlap(InvalidTermDatesException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(PeriodOverlapException.class)
-    public ResponseEntity<Map<String, String>> handlePeriodOverlap(PeriodOverlapException ex) {
+    @ExceptionHandler(TermOverlapException.class)
+    public ResponseEntity<Map<String, String>> handlePeriodOverlap(TermOverlapException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(PeriodAlreadyExistsException.class)
-    public ResponseEntity<Map<String, String>> handlePeriodAlreadyExists(PeriodAlreadyExistsException ex) {
+    @ExceptionHandler(TermAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handlePeriodAlreadyExists(TermAlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(PeriodNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handlePeriodNotFound(PeriodNotFoundException ex) {
+    @ExceptionHandler(TermNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handlePeriodNotFound(TermNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", ex.getMessage()));
     }

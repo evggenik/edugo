@@ -1,4 +1,4 @@
-package com.evggenn.edugo.period;
+package com.evggenn.edugo.term;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,10 +16,14 @@ import java.time.LocalDate;
 @Setter
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Period {
+public class Term {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    /* equals/hashCode based on id only.
+    Transient instances (id = null) are all "equal" —
+    avoid using in Sets before persist.
+    */
     @EqualsAndHashCode.Include
     private Long id;
 
@@ -35,10 +39,10 @@ public class Period {
     @Column(name = "academic_year", nullable = false, length = 9)
     private String academicYear;
 
-    public Period(String name,
-                  LocalDate startDate,
-                  LocalDate endDate,
-                  String academicYear) {
+    public Term(String name,
+                LocalDate startDate,
+                LocalDate endDate,
+                String academicYear) {
         this.name = name;
         this.startDate = startDate;
         this.endDate = endDate;

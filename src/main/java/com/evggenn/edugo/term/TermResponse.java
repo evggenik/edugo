@@ -1,8 +1,8 @@
-package com.evggenn.edugo.period;
+package com.evggenn.edugo.term;
 
 import java.time.LocalDate;
 
-public record PeriodResponse(
+public record TermResponse(
         Long id,
         String name,
         LocalDate startDate,

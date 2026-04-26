@@ -18,6 +18,10 @@ import java.util.Set;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    /* equals/hashCode based on id only.
+    Transient instances (id = null) are all "equal" —
+    avoid using in Sets before persist.
+    */
     @EqualsAndHashCode.Include
     private Long id;
 

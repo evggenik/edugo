@@ -1,4 +1,4 @@
-package com.evggenn.edugo.period;
+package com.evggenn.edugo.term;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
