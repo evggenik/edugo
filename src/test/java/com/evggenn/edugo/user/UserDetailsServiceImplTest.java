@@ -1,6 +1,6 @@
 package com.evggenn.edugo.user;
 
-import com.evggenn.edugo.exception.UserNotFoundException;
+import com.evggenn.edugo.user.exception.UserNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +36,7 @@ class UserDetailsServiceImplTest {
                 .firstName("Vasia")
                 .lastName("Vasilkov")
                 .middleName("Zagagulivich")
-                .roles(Set.of(new Role(1L, Role.STUDENT)))
+                .roles(Set.of(new Role(1L, RoleName.STUDENT)))
                 .build();
     }
 

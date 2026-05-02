@@ -2,6 +2,7 @@ package com.evggenn.edugo.auth;
 
 import com.evggenn.edugo.user.CustomUserDetails;
 import com.evggenn.edugo.user.Role;
+import com.evggenn.edugo.user.RoleName;
 import com.evggenn.edugo.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ class JwtServiceTest {
                         .firstName("Vasia")
                         .lastName("Vasilkov")
                         .middleName("Zagagulivich")
-                        .roles(Set.of(new Role(1L, Role.STUDENT)))
+                        .roles(Set.of(new Role(1L, RoleName.STUDENT)))
                         .build()
         );
     }
@@ -70,6 +71,6 @@ class JwtServiceTest {
     public void generateToken_shouldContainRoles() {
         String token = jwtService.generateToken(userDetails);
         List<String> roles = jwtService.extractRoles(token);
-        assertThat(roles).containsExactlyInAnyOrder(Role.STUDENT);
+        assertThat(roles).containsExactlyInAnyOrder(RoleName.STUDENT.name());
     }
 }

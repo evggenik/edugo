@@ -1,9 +1,15 @@
 package com.evggenn.edugo.schoolclass;
 
-import com.evggenn.edugo.exception.*;
+import com.evggenn.edugo.schoolclass.exception.ClassIsArchivedException;
+import com.evggenn.edugo.schoolclass.exception.SchoolClassAlreadyExistsException;
+import com.evggenn.edugo.schoolclass.exception.SchoolClassNotFoundException;
+import com.evggenn.edugo.schoolclass.exception.StudentAlreadyInClassException;
 import com.evggenn.edugo.user.Role;
+import com.evggenn.edugo.user.RoleName;
 import com.evggenn.edugo.user.User;
 import com.evggenn.edugo.user.UserRepository;
+import com.evggenn.edugo.user.exception.NotStudentException;
+import com.evggenn.edugo.user.exception.UserNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -214,7 +220,7 @@ class SchoolClassServiceTest {
                 .id(1L)
                 .firstName("Вася")
                 .lastName("Васильков")
-                .roles(Set.of(Role.builder().name(Role.TEACHER).build()))
+                .roles(Set.of(Role.builder().name(RoleName.TEACHER).build()))
                 .build();
 
         when(schoolClassRepository.findByIdWithDetails(classId)).thenReturn(Optional.of(updatedClass));
@@ -237,7 +243,7 @@ class SchoolClassServiceTest {
         SchoolClass schoolClass = new SchoolClass("7Б", "2025-2026");
         User student = User.builder()
                 .id(1L)
-                .roles(Set.of(Role.builder().name(Role.STUDENT).build()))
+                .roles(Set.of(Role.builder().name(RoleName.STUDENT).build()))
                 .build();
 
         when(schoolClassRepository.findByIdWithDetails(classId))
@@ -263,7 +269,7 @@ class SchoolClassServiceTest {
         SchoolClass schoolClass = new SchoolClass("7Б", "2025-2026");
         User student = User.builder()
                 .id(1L)
-                .roles(Set.of(Role.builder().name(Role.STUDENT).build()))
+                .roles(Set.of(Role.builder().name(RoleName.STUDENT).build()))
                 .build();
 
         when(schoolClassRepository.findByIdWithDetails(classId))

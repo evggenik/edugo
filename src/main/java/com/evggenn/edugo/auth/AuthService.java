@@ -1,5 +1,7 @@
 package com.evggenn.edugo.auth;
 
+import com.evggenn.edugo.user.Role;
+import com.evggenn.edugo.user.RoleName;
 import com.evggenn.edugo.user.User;
 import com.evggenn.edugo.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +24,8 @@ public class AuthService {
                 request.getPassword(),
                 request.getFirstName(),
                 request.getLastName(),
-                request.getMiddleName()
+                request.getMiddleName(),
+                RoleName.STUDENT
         );
 
         UserResponse response = new UserResponse();

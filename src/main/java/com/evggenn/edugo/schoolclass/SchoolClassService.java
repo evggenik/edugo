@@ -1,9 +1,14 @@
 package com.evggenn.edugo.schoolclass;
 
-import com.evggenn.edugo.exception.*;
-import com.evggenn.edugo.user.Role;
+import com.evggenn.edugo.schoolclass.exception.ClassIsArchivedException;
+import com.evggenn.edugo.schoolclass.exception.SchoolClassAlreadyExistsException;
+import com.evggenn.edugo.schoolclass.exception.SchoolClassNotFoundException;
+import com.evggenn.edugo.schoolclass.exception.StudentAlreadyInClassException;
+import com.evggenn.edugo.user.RoleName;
 import com.evggenn.edugo.user.User;
 import com.evggenn.edugo.user.UserRepository;
+import com.evggenn.edugo.user.exception.NotStudentException;
+import com.evggenn.edugo.user.exception.UserNotFoundException;
 import com.evggenn.edugo.util.AcademicYearUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -83,7 +88,7 @@ public class SchoolClassService {
                 () -> new UserNotFoundException(studentId));
 
         if (student.getRoles().stream()
-                .noneMatch(role -> role.getName().equals(Role.STUDENT))) {
+                .noneMatch(role -> role.getName() == RoleName.STUDENT)) {
             throw new NotStudentException(studentId);
         }
 

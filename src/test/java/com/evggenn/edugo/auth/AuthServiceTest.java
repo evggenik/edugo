@@ -1,10 +1,7 @@
 package com.evggenn.edugo.auth;
 
-import com.evggenn.edugo.exception.EmailAlreadyExistsException;
-import com.evggenn.edugo.user.CustomUserDetails;
-import com.evggenn.edugo.user.Role;
-import com.evggenn.edugo.user.User;
-import com.evggenn.edugo.user.UserService;
+import com.evggenn.edugo.user.*;
+import com.evggenn.edugo.user.exception.EmailAlreadyExistsException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,7 +50,7 @@ class AuthServiceTest {
                 .firstName("Vasia")
                 .lastName("Vasilkov")
                 .middleName("Zagagulivich")
-                .roles(Set.of(new Role(1L, Role.STUDENT)))
+                .roles(Set.of(new Role(1L, RoleName.STUDENT)))
                 .build();
 
         loginRequest.setEmail("test@test.com");
@@ -90,7 +87,8 @@ class AuthServiceTest {
                 registerRequest.getPassword(),
                 registerRequest.getFirstName(),
                 registerRequest.getLastName(),
-                registerRequest.getMiddleName()
+                registerRequest.getMiddleName(),
+                RoleName.STUDENT
         )).thenReturn(user);
 
         UserResponse userResponse = authService.register(registerRequest);
@@ -106,7 +104,8 @@ class AuthServiceTest {
                 registerRequest.getPassword(),
                 registerRequest.getFirstName(),
                 registerRequest.getLastName(),
-                registerRequest.getMiddleName()
+                registerRequest.getMiddleName(),
+                RoleName.STUDENT
         )).thenThrow(new EmailAlreadyExistsException("test@test.com"));
 
         Throwable throwable = assertThrows(EmailAlreadyExistsException.class, () -> {

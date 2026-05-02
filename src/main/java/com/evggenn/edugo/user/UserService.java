@@ -1,7 +1,8 @@
 package com.evggenn.edugo.user;
 
-import com.evggenn.edugo.exception.EmailAlreadyExistsException;
-import com.evggenn.edugo.exception.UserNotFoundException;
+import com.evggenn.edugo.user.exception.EmailAlreadyExistsException;
+import com.evggenn.edugo.user.exception.SchoolRoleNotFoundException;
+import com.evggenn.edugo.user.exception.UserNotFoundException;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,7 +29,8 @@ public class UserService {
                            String rawPassword,
                            String firstName,
                            String lastName,
-                           String middleName) {
+                           String middleName,
+                           RoleName roleName) {
 
         if (userRepo.existsByEmail(email)) {
             throw new EmailAlreadyExistsException(email);
@@ -36,8 +38,8 @@ public class UserService {
 
         String encodedPassword = passwordEncoder.encode(rawPassword);
 
-        Role role = roleRepo.findByName(Role.STUDENT)
-                .orElseThrow(() -> new IllegalStateException("Role STUDENT not found"));
+        Role role = roleRepo.findByName(roleName)
+                .orElseThrow(() -> new SchoolRoleNotFoundException(roleName));
 
         User user = User.builder()
                 .email(email)
@@ -47,7 +49,7 @@ public class UserService {
                 .middleName(middleName)
                 .build();
 
-        user.getRoles().add(role);
+        user.addRole(role);
 
         return userRepo.save(user);
     }

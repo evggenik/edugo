@@ -59,4 +59,8 @@ public class User {
     protected void onCreate() {
         if (createdAt == null) createdAt = Instant.now();
     }
+
+    public void addRole(Role role) {
+        this.roles.add(role);
+    }
 }
