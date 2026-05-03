@@ -1,6 +1,5 @@
 package com.evggenn.edugo.auth;
 
-import com.evggenn.edugo.user.Role;
 import com.evggenn.edugo.user.RoleName;
 import com.evggenn.edugo.user.User;
 import com.evggenn.edugo.user.UserService;

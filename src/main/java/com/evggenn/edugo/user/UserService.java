@@ -1,8 +1,9 @@
 package com.evggenn.edugo.user;
 
-import com.evggenn.edugo.user.exception.EmailAlreadyExistsException;
-import com.evggenn.edugo.user.exception.SchoolRoleNotFoundException;
-import com.evggenn.edugo.user.exception.UserNotFoundException;
+import com.evggenn.edugo.subject.Subject;
+import com.evggenn.edugo.subject.SubjectRepository;
+import com.evggenn.edugo.subject.exception.SubjectNotFoundException;
+import com.evggenn.edugo.user.exception.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +17,7 @@ public class UserService {
 
     private final UserRepository userRepo;
     private final RoleRepository roleRepo;
+    private final SubjectRepository subjectRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
@@ -52,5 +54,32 @@ public class UserService {
         user.addRole(role);
 
         return userRepo.save(user);
+    }
+
+    @Transactional
+    public void addSubjectToTeacher(Long teacherId,Long subjectId) {
+
+        User teacher = findTeacherByIdOrThrow(teacherId);
+
+        Subject subject = subjectRepository.findById(subjectId).orElseThrow(
+                () -> new SubjectNotFoundException(subjectId)
+        );
+
+        if (teacher.getSubjects().stream()
+                .anyMatch(subj -> subj.getId().equals(subjectId))) {
+            throw new TeacherAlreadyHasSubjectException(subject.getName(), teacher.getLastName());
+        }
+
+        teacher.getSubjects().add(subject);
+    }
+
+    public User findTeacherByIdOrThrow(Long teacherId) {
+        User teacher = userRepo.findByIdWithRoles(teacherId)
+                .orElseThrow(() -> new UserNotFoundException(teacherId));
+        if (teacher.getRoles().stream()
+                .noneMatch(role -> role.getName() == RoleName.TEACHER)) {
+            throw new NotTeacherException(teacherId);
+        }
+        return teacher;
     }
 }

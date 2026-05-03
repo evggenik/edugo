@@ -1,5 +1,6 @@
 package com.evggenn.edugo.user;
 
+import com.evggenn.edugo.subject.Subject;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;
@@ -14,7 +15,7 @@ import java.util.Set;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(exclude = {"password", "roles"})
+@ToString(exclude = {"password", "roles", "subjects"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,6 +55,15 @@ public class User {
     )
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "teacher_subjects",
+            joinColumns = @JoinColumn(name = "teacher_id"),
+            inverseJoinColumns = @JoinColumn(name = "subject_id")
+    )
+    @Builder.Default
+    private Set<Subject> subjects = new HashSet<>();
 
     @PrePersist
     protected void onCreate() {
