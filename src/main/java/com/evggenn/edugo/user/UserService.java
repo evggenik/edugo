@@ -73,6 +73,28 @@ public class UserService {
         teacher.getSubjects().add(subject);
     }
 
+    @Transactional
+    public void removeSubjectFromTeacher(Long teacherId, Long subjectId) {
+
+        User teacher = findTeacherByIdOrThrow(teacherId);
+
+        Subject subject = subjectRepository.findById(subjectId).orElseThrow(
+                () -> new SubjectNotFoundException(subjectId)
+        );
+
+        if (teacher.getSubjects().stream()
+                .noneMatch(subj -> subj.getId().equals(subjectId))) {
+            throw new TeacherHasNotSubjectException(teacher.getLastName(), subject.getName());
+        }
+
+        teacher.getSubjects()
+                .removeIf(subj -> subj.getId().equals(subjectId));
+    }
+
+    public void assignRole(Long userId, Long roleId) {
+
+    }
+
     public User findTeacherByIdOrThrow(Long teacherId) {
         User teacher = userRepo.findByIdWithRoles(teacherId)
                 .orElseThrow(() -> new UserNotFoundException(teacherId));
