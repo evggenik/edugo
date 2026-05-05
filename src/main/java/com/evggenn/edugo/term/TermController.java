@@ -2,10 +2,11 @@ package com.evggenn.edugo.term;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -23,7 +24,13 @@ public class TermController {
                 request.endDate()
         );
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(term));
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(term.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(toResponse(term));
     }
 
     @PatchMapping("/{id}")

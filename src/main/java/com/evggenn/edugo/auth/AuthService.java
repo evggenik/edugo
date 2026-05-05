@@ -1,8 +1,6 @@
 package com.evggenn.edugo.auth;
 
-import com.evggenn.edugo.user.RoleName;
-import com.evggenn.edugo.user.User;
-import com.evggenn.edugo.user.UserService;
+import com.evggenn.edugo.user.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,14 +25,7 @@ public class AuthService {
                 RoleName.STUDENT
         );
 
-        UserResponse response = new UserResponse();
-        response.setId(user.getId());
-        response.setEmail(user.getEmail());
-        response.setFirstName(user.getFirstName());
-        response.setLastName(user.getLastName());
-        response.setMiddleName(user.getMiddleName());
-        response.setCreatedAt(user.getCreatedAt());
-        return response;
+        return UserResponse.from(user);
     }
 
     public LoginResponse login(LoginRequest request) {
