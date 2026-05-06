@@ -1,4 +1,4 @@
-package com.evggenn.edugo.exception;
+package com.evggenn.edugo.user.exception;
 
 public class UserNotFoundException extends RuntimeException {
     public UserNotFoundException(String email) {

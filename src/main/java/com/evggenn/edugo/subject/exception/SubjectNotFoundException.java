@@ -1,4 +1,4 @@
-package com.evggenn.edugo.exception;
+package com.evggenn.edugo.subject.exception;
 
 public class SubjectNotFoundException extends RuntimeException {
     public SubjectNotFoundException(Long subjectId) {

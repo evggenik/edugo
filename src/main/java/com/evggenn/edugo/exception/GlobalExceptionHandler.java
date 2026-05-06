@@ -1,9 +1,18 @@
 package com.evggenn.edugo.exception;
 
+import com.evggenn.edugo.lesson.exception.InvalidTimesException;
+import com.evggenn.edugo.lesson.exception.LessonConflictException;
+import com.evggenn.edugo.schoolclass.exception.SchoolClassAlreadyExistsException;
+import com.evggenn.edugo.schoolclass.exception.SchoolClassNotFoundException;
+import com.evggenn.edugo.schoolclass.exception.StudentAlreadyInClassException;
+import com.evggenn.edugo.subject.exception.SubjectAlreadyExistsException;
+import com.evggenn.edugo.subject.exception.SubjectNotFoundException;
 import com.evggenn.edugo.term.exception.InvalidTermDatesException;
 import com.evggenn.edugo.term.exception.TermAlreadyExistsException;
 import com.evggenn.edugo.term.exception.TermNotFoundException;
 import com.evggenn.edugo.term.exception.TermOverlapException;
+import com.evggenn.edugo.user.exception.*;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -13,16 +22,65 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(NotTeacherException.class)
+    public ResponseEntity<Map<String, String>> handleNotTeacher(NotTeacherException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(TeacherAlreadyHasSubjectException.class)
+    public ResponseEntity<Map<String, String>> handleTeacherHasSubject(TeacherAlreadyHasSubjectException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(TeacherHasNotSubjectException.class)
+    public ResponseEntity<Map<String, String>> handleTeacherHasNotSubject(TeacherHasNotSubjectException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(SchoolRoleNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleRoleNotFound(SchoolRoleNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidTimesException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidTimes(InvalidTimesException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(LessonConflictException.class)
+    public ResponseEntity<Map<String, String>> handleLessonTimeOverlap(LessonConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, String>> handleInvalidFormat(HttpMessageNotReadableException ex) {
+        String message = "Invalid request format";
+
+        Throwable cause = ex.getCause();
+        if (cause instanceof InvalidFormatException ife) {
+            if (ife.getTargetType().isEnum()) {
+                message = String.format("Invalid value '%s' for field '%s'. Allowed values: %s",
+                        ife.getValue(),
+                        ife.getPath().get(0).getFieldName(),
+                        Arrays.toString(ife.getTargetType().getEnumConstants()));
+            }
+        }
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("error", "Invalid request format"));
+                .body(Map.of("error", message));
     }
 
     @ExceptionHandler(InvalidTermDatesException.class)

@@ -1,4 +1,4 @@
-package com.evggenn.edugo.exception;
+package com.evggenn.edugo.user.exception;
 
 public class EmailAlreadyExistsException extends RuntimeException {
     public EmailAlreadyExistsException(String email) {
