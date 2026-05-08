@@ -98,8 +98,9 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Page<User> getUsersByRole(RoleName roleName, Pageable pageable) {
-        return userRepo.findAllByRoleName(roleName, pageable);
+    public Page<UserResponse> getUsersByRole(RoleName roleName, Pageable pageable) {
+        return userRepo.findAllByRoleName(roleName, pageable)
+                .map(UserResponse::from);
     }
 
     public User findTeacherByIdOrThrow(Long teacherId) {

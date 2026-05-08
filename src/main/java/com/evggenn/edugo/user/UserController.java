@@ -1,9 +1,11 @@
 package com.evggenn.edugo.user;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -21,11 +23,15 @@ public class UserController {
     @GetMapping
     public ResponseEntity<Page<UserResponse>> getAllByRole(
             @RequestParam RoleName roleName,
-            Pageable pageable) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "id") String sort) {
 
-        Page<User> page = userService.getUsersByRole(roleName, pageable);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort).ascending());
 
-        return ResponseEntity.ok(page.map(UserResponse::from));
+        Page<UserResponse> users = userService.getUsersByRole(roleName, pageable);
+
+        return ResponseEntity.ok(users);
     }
 
     @PostMapping
