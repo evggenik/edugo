@@ -6,6 +6,8 @@ import com.evggenn.edugo.subject.exception.SubjectNotFoundException;
 import com.evggenn.edugo.user.exception.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,6 +95,11 @@ public class UserService {
 
     public void assignRole(Long userId, Long roleId) {
 
+    }
+
+    @Transactional(readOnly = true)
+    public Page<User> getUsersByRole(RoleName roleName, Pageable pageable) {
+        return userRepo.findAllByRoleName(roleName, pageable);
     }
 
     public User findTeacherByIdOrThrow(Long teacherId) {

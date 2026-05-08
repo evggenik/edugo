@@ -29,9 +29,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").denyAll()
+                        .requestMatchers(HttpMethod.GET, "/users/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/users/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/users/**").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/users/**").authenticated()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/periods/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/classes/**").authenticated()

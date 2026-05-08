@@ -3,6 +3,8 @@ package com.evggenn.edugo.user;
 import com.evggenn.edugo.subject.Subject;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
+
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -54,6 +56,7 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     @Builder.Default
+    @BatchSize(size = 20)
     private Set<Role> roles = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)

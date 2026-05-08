@@ -1,5 +1,7 @@
 package com.evggenn.edugo.user;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,16 @@ import java.net.URI;
 public class UserController {
 
     private final UserService userService;
+
+    @GetMapping
+    public ResponseEntity<Page<UserResponse>> getAllByRole(
+            @RequestParam RoleName roleName,
+            Pageable pageable) {
+
+        Page<User> page = userService.getUsersByRole(roleName, pageable);
+
+        return ResponseEntity.ok(page.map(UserResponse::from));
+    }
 
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@RequestBody @Valid CreateUserRequest request) {
