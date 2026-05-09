@@ -1,5 +1,7 @@
 package com.evggenn.edugo.user;
 
+import com.evggenn.edugo.subject.SubjectResponse;
+
 import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,7 +13,8 @@ public record UserResponse(
         String lastName,
         String middleName,
         Instant createdAt,
-        Set<RoleName> roles) {
+        Set<RoleName> roles,
+        Set<SubjectResponse> subjects) {
 
     public static UserResponse from(User user) {
         return new UserResponse(
@@ -22,7 +25,10 @@ public record UserResponse(
                 user.getMiddleName(),
                 user.getCreatedAt(),
                 user.getRoles().stream()
-                        .map(Role::getName).collect(Collectors.toSet())
+                        .map(Role::getName).collect(Collectors.toSet()),
+                user.getSubjects().stream()
+                        .map(SubjectResponse::from)
+                        .collect(Collectors.toSet())
         );
     }
 }

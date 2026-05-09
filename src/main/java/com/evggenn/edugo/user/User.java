@@ -66,6 +66,7 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "subject_id")
     )
     @Builder.Default
+    @BatchSize(size = 20)
     private Set<Subject> subjects = new HashSet<>();
 
     @PrePersist
