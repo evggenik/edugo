@@ -2,6 +2,7 @@ package com.evggenn.edugo.lesson;
 
 import com.evggenn.edugo.lesson.exception.InvalidTimesException;
 import com.evggenn.edugo.lesson.exception.LessonConflictException;
+import com.evggenn.edugo.lesson.exception.LessonNotEditableException;
 import com.evggenn.edugo.lesson.exception.LessonNotFoundException;
 import com.evggenn.edugo.schoolclass.exception.ClassIsArchivedException;
 import com.evggenn.edugo.subject.SubjectRepository;

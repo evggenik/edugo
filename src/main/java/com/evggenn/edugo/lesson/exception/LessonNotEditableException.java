@@ -1,4 +1,4 @@
-package com.evggenn.edugo.lesson;
+package com.evggenn.edugo.lesson.exception;
 
 public class LessonNotEditableException extends RuntimeException {
     public LessonNotEditableException(String lessonStatus) {

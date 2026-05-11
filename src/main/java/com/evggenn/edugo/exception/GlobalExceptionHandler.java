@@ -1,6 +1,6 @@
 package com.evggenn.edugo.exception;
 
-import com.evggenn.edugo.lesson.LessonNotEditableException;
+import com.evggenn.edugo.lesson.exception.LessonNotEditableException;
 import com.evggenn.edugo.lesson.exception.InvalidTimesException;
 import com.evggenn.edugo.lesson.exception.LessonConflictException;
 import com.evggenn.edugo.lesson.exception.LessonNotFoundException;
