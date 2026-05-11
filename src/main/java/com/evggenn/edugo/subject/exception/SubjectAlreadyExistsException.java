@@ -1,4 +1,4 @@
-package com.evggenn.edugo.exception;
+package com.evggenn.edugo.subject.exception;
 
 public class SubjectAlreadyExistsException extends RuntimeException {
     public SubjectAlreadyExistsException(String subjectName) {

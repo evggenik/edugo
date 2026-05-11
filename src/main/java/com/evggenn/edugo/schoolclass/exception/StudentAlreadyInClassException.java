@@ -1,4 +1,4 @@
-package com.evggenn.edugo.exception;
+package com.evggenn.edugo.schoolclass.exception;
 
 public class StudentAlreadyInClassException extends RuntimeException {
     public StudentAlreadyInClassException(Long studentId, String academicYear) {
