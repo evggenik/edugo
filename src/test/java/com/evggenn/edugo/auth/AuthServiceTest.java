@@ -93,8 +93,8 @@ class AuthServiceTest {
 
         UserResponse userResponse = authService.register(registerRequest);
 
-        assertThat(userResponse.getEmail()).isEqualTo(user.getEmail());
-        assertThat(userResponse.getFirstName()).isEqualTo(user.getFirstName());
+        assertThat(userResponse.email()).isEqualTo(user.getEmail());
+        assertThat(userResponse.firstName()).isEqualTo(user.getFirstName());
     }
 
     @Test

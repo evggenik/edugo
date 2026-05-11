@@ -20,6 +20,8 @@ public interface SchoolClassRepository extends JpaRepository<SchoolClass, Long> 
     """)
     boolean existsByStudentIdAndAcademicYear(Long studentId, String academicYear);
 
+    Optional<SchoolClass> findById(Long id);
+
     @Query("""
     SELECT DISTINCT sc
     FROM SchoolClass sc

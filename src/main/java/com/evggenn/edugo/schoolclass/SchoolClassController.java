@@ -2,10 +2,11 @@ package com.evggenn.edugo.schoolclass;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -17,9 +18,15 @@ public class SchoolClassController {
 
     @PostMapping
     public ResponseEntity<SchoolClassResponse> createClass(@Valid @RequestBody SchoolClassCreateRequest request) {
-        SchoolClassResponse response = classService.createClass(request);
+        SchoolClassResponse resp = classService.createClass(request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(resp.id())
+                .toUri();
+
+        return ResponseEntity.created(location).body(resp);
     }
 
     @PatchMapping("/{classId}")

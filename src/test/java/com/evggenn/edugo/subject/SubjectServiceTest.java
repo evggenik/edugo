@@ -1,7 +1,7 @@
 package com.evggenn.edugo.subject;
 
-import com.evggenn.edugo.exception.SubjectAlreadyExistsException;
-import com.evggenn.edugo.exception.SubjectNotFoundException;
+import com.evggenn.edugo.subject.exception.SubjectAlreadyExistsException;
+import com.evggenn.edugo.subject.exception.SubjectNotFoundException;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
