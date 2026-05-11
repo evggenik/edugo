@@ -2,6 +2,7 @@ package com.evggenn.edugo.lesson;
 
 import com.evggenn.edugo.lesson.exception.InvalidTimesException;
 import com.evggenn.edugo.lesson.exception.LessonConflictException;
+import com.evggenn.edugo.lesson.exception.LessonNotFoundException;
 import com.evggenn.edugo.schoolclass.exception.ClassIsArchivedException;
 import com.evggenn.edugo.subject.SubjectRepository;
 import com.evggenn.edugo.subject.exception.SubjectNotFoundException;
@@ -14,7 +15,7 @@ import com.evggenn.edugo.schoolclass.SchoolClassRepository;
 import com.evggenn.edugo.subject.Subject;
 import com.evggenn.edugo.term.Term;
 import com.evggenn.edugo.user.User;
-import com.evggenn.edugo.user.UserRepository;
+import com.evggenn.edugo.user.exception.TeacherDoesNotTeachSubjectException;
 import com.evggenn.edugo.util.AcademicYearUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,8 +30,6 @@ public class LessonService {
     private final LessonRepository lessonRepository;
 
     private final SchoolClassRepository  schoolClassRepository;
-
-    private final UserRepository userRepository;
 
     private final SubjectRepository subjectRepository;
 
@@ -68,6 +67,10 @@ public class LessonService {
                 () -> new SubjectNotFoundException(subjectId)
         );
 
+        if (!teacher.getSubjects().contains(subject)) {
+            throw new TeacherDoesNotTeachSubjectException(teacherId, subjectId);
+        }
+
         Term term = termRepository.findByIdAndAcademicYear(
                 termId, currentAcademicYear).orElseThrow(
                 () -> new TermNotFoundException(termId, currentAcademicYear)
@@ -93,5 +96,72 @@ public class LessonService {
                 .build();
 
         return lessonRepository.save(lesson);
+    }
+
+    @Transactional
+    public void updateLesson(
+            Long id,
+            String topic,
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            String room,
+            Long schoolClassId,
+            Long subjectId,
+            Long teacherId,
+            Long  termId) {
+
+        Lesson lesson = lessonRepository.findById(id).orElseThrow(
+                () -> new LessonNotFoundException(id)
+        );
+
+        if (lesson.getStatus() != LessonStatus.SCHEDULED) {
+            throw new LessonNotEditableException(lesson.getStatus().name());
+        }
+
+        String currentAcademicYear = AcademicYearUtil.getCurrentAcademicYear();
+
+        if (!startTime.isBefore(endTime)) {
+            throw new InvalidTimesException(startTime, endTime);
+        }
+
+        SchoolClass schoolClass = schoolClassRepository.findById(schoolClassId).orElseThrow(
+                () -> new SchoolClassNotFoundException(schoolClassId)
+        );
+
+        if (!schoolClass.getAcademicYear().equals(currentAcademicYear)) {
+            throw new ClassIsArchivedException(schoolClass.getAcademicYear());
+        }
+
+        User teacher = userService.findTeacherByIdOrThrow(teacherId);
+
+        Subject subject = subjectRepository.findById(subjectId).orElseThrow(
+                () -> new SubjectNotFoundException(subjectId)
+        );
+
+        if (!teacher.getSubjects().contains(subject)) {
+            throw new TeacherDoesNotTeachSubjectException(teacherId, subjectId);
+        }
+
+        Term term = termRepository.findByIdAndAcademicYear(
+                termId, currentAcademicYear).orElseThrow(
+                () -> new TermNotFoundException(termId, currentAcademicYear)
+        );
+
+        if (lessonRepository.existsOverlappingTimesExcludingId(id, schoolClassId, startTime, endTime)) {
+            throw new LessonConflictException(LessonConflictType.CLASS_OCCUPIED);
+        }
+
+        if (lessonRepository.existsOverlappingByTeacherExcludingId(id, teacherId, startTime, endTime)) {
+            throw new LessonConflictException(LessonConflictType.TEACHER_BUSY);
+        }
+
+        lesson.setTopic(topic);
+        lesson.setStartTime(startTime);
+        lesson.setEndTime(endTime);
+        lesson.setRoom(room);
+        lesson.setSchoolClass(schoolClass);
+        lesson.setSubject(subject);
+        lesson.setTeacher(teacher);
+        lesson.setTerm(term);
     }
 }

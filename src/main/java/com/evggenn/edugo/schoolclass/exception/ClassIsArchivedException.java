@@ -1,4 +1,4 @@
-package com.evggenn.edugo.exception;
+package com.evggenn.edugo.schoolclass.exception;
 
 public class ClassIsArchivedException extends RuntimeException {
     public ClassIsArchivedException(String academicYear) {

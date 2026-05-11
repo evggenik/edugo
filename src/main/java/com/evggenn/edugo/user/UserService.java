@@ -93,9 +93,9 @@ public class UserService {
                 .removeIf(subj -> subj.getId().equals(subjectId));
     }
 
-    public void assignRole(Long userId, Long roleId) {
-
-    }
+//    public void assignRole(Long userId, Long roleId) {
+//
+//    }
 
     @Transactional(readOnly = true)
     public Page<UserResponse> getUsersByRole(RoleName roleName, Pageable pageable) {
