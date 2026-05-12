@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -164,5 +165,12 @@ public class LessonService {
         lesson.setSubject(subject);
         lesson.setTeacher(teacher);
         lesson.setTerm(term);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Lesson> findLessonsByTeacherClassAndTerm(
+            Long teacherId, Long schoolClassId, Long termId) {
+        return lessonRepository
+                .findLessonsByTeacherClassAndTerm(teacherId, schoolClassId, termId);
     }
 }

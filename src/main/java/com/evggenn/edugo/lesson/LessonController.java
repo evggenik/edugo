@@ -3,13 +3,11 @@ package com.evggenn.edugo.lesson;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/lessons")
@@ -39,5 +37,37 @@ public class LessonController {
                 .toUri();
 
         return ResponseEntity.created(location).body(LessonResponse.from(lesson));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateLesson(
+            @PathVariable Long id,
+            @Valid @RequestBody LessonUpdateRequest request) {
+        lessonService.updateLesson(
+                id,
+                request.topic(),
+                request.startTime(),
+                request.endTime(),
+                request.room(),
+                request.schoolClassId(),
+                request.subjectId(),
+                request.teacherId(),
+                request.termId()
+        );
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<LessonResponse>> getLessonsByTeacherClassAndTerm(
+            @RequestParam Long teacherId,
+            @RequestParam Long schoolClassId,
+            @RequestParam Long termId) {
+        List<Lesson> lessonList = lessonService.findLessonsByTeacherClassAndTerm(
+                teacherId, schoolClassId, termId);
+
+        List<LessonResponse> responseList = lessonList.stream().map(LessonResponse::from).toList();
+
+        return ResponseEntity.ok(responseList);
     }
 }

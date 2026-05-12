@@ -10,6 +10,20 @@ import java.util.Optional;
 public interface LessonRepository extends JpaRepository<Lesson, Long> {
 
     @Query("""
+        SELECT l FROM Lesson l
+        JOIN FETCH l.schoolClass
+        JOIN FETCH l.subject
+        JOIN FETCH l.teacher
+        JOIN FETCH l.term
+        WHERE l.teacher.id = :teacherId
+        AND l.schoolClass.id = :schoolClassId
+        AND l.term.id = :termId
+    """)
+    List<Lesson> findLessonsByTeacherClassAndTerm(
+            Long teacherId, Long schoolClassId, Long termId
+    );
+
+    @Query("""
         SELECT COUNT(l) > 0 FROM Lesson l
         WHERE l.schoolClass.id = :classId
         AND l.startTime <= :endTime
