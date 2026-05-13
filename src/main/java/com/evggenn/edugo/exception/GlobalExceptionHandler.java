@@ -1,9 +1,6 @@
 package com.evggenn.edugo.exception;
 
-import com.evggenn.edugo.lesson.exception.LessonNotEditableException;
-import com.evggenn.edugo.lesson.exception.InvalidTimesException;
-import com.evggenn.edugo.lesson.exception.LessonConflictException;
-import com.evggenn.edugo.lesson.exception.LessonNotFoundException;
+import com.evggenn.edugo.lesson.exception.*;
 import com.evggenn.edugo.schoolclass.exception.SchoolClassAlreadyExistsException;
 import com.evggenn.edugo.schoolclass.exception.SchoolClassNotFoundException;
 import com.evggenn.edugo.schoolclass.exception.StudentAlreadyInClassException;
@@ -30,6 +27,12 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(LessonOutOfTermException.class)
+    public ResponseEntity<Map<String, String>> handleLessonOutOfTerm(LessonOutOfTermException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
 
     @ExceptionHandler(TeacherDoesNotTeachSubjectException.class)
     public ResponseEntity<Map<String, String>> handleTeacherDoesNotTeachSubject(TeacherDoesNotTeachSubjectException ex) {

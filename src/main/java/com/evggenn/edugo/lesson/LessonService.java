@@ -1,9 +1,6 @@
 package com.evggenn.edugo.lesson;
 
-import com.evggenn.edugo.lesson.exception.InvalidTimesException;
-import com.evggenn.edugo.lesson.exception.LessonConflictException;
-import com.evggenn.edugo.lesson.exception.LessonNotEditableException;
-import com.evggenn.edugo.lesson.exception.LessonNotFoundException;
+import com.evggenn.edugo.lesson.exception.*;
 import com.evggenn.edugo.schoolclass.exception.ClassIsArchivedException;
 import com.evggenn.edugo.subject.SubjectRepository;
 import com.evggenn.edugo.subject.exception.SubjectNotFoundException;
@@ -78,6 +75,11 @@ public class LessonService {
                 () -> new TermNotFoundException(termId, currentAcademicYear)
         );
 
+        if (startTime.toLocalDate().isBefore(term.getStartDate()) ||
+                startTime.toLocalDate().isAfter(term.getEndDate())) {
+            throw new LessonOutOfTermException(term.getName());
+        }
+
         if (lessonRepository.existsOverlappingTimes(schoolClassId, startTime, endTime)) {
             throw new LessonConflictException(LessonConflictType.CLASS_OCCUPIED);
         }
@@ -148,6 +150,11 @@ public class LessonService {
                 termId, currentAcademicYear).orElseThrow(
                 () -> new TermNotFoundException(termId, currentAcademicYear)
         );
+
+        if (startTime.toLocalDate().isBefore(term.getStartDate()) ||
+                startTime.toLocalDate().isAfter(term.getEndDate())) {
+            throw new LessonOutOfTermException(term.getName());
+        }
 
         if (lessonRepository.existsOverlappingTimesExcludingId(id, schoolClassId, startTime, endTime)) {
             throw new LessonConflictException(LessonConflictType.CLASS_OCCUPIED);
