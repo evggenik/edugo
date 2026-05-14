@@ -1,8 +1,10 @@
 package com.evggenn.edugo.lesson;
 
+import com.evggenn.edugo.user.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -58,6 +60,21 @@ public class LessonController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{id}/content")
+    public ResponseEntity<Void> updateLessonContent(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @Valid @RequestBody LessonTopicUpdateRequest request) {
+        lessonService.updateLessonContent(
+                id,
+                principal.getId(),
+                request.topic(),
+                request.room()
+        );
+
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping
     public ResponseEntity<List<LessonResponse>> getLessonsByTeacherClassAndTerm(
             @RequestParam Long teacherId,
@@ -69,5 +86,13 @@ public class LessonController {
         List<LessonResponse> responseList = lessonList.stream().map(LessonResponse::from).toList();
 
         return ResponseEntity.ok(responseList);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<LessonResponse> getLessonById(
+            @PathVariable Long id) {
+        Lesson lesson = lessonService.getLessonById(id);
+
+        return ResponseEntity.ok(LessonResponse.from(lesson));
     }
 }

@@ -9,10 +9,12 @@ import java.util.stream.Collectors;
 
 public class CustomUserDetails implements UserDetails {
 
+    private final Long id;
     private final User user;
 
     public CustomUserDetails(User user) {
         this.user = user;
+        this.id = user.getId();
     }
 
     @Override
@@ -50,5 +52,9 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public Long getId() {
+        return id;
     }
 }

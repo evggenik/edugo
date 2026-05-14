@@ -16,6 +16,8 @@ import com.evggenn.edugo.user.User;
 import com.evggenn.edugo.user.exception.TeacherDoesNotTeachSubjectException;
 import com.evggenn.edugo.util.AcademicYearUtil;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.util.TriConsumer;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -179,5 +181,25 @@ public class LessonService {
             Long teacherId, Long schoolClassId, Long termId) {
         return lessonRepository
                 .findLessonsByTeacherClassAndTerm(teacherId, schoolClassId, termId);
+    }
+
+    @Transactional(readOnly = true)
+    public Lesson getLessonById(Long id) {
+        return lessonRepository.findByIdWithDetails(id).orElseThrow(
+                () -> new LessonNotFoundException(id));
+    }
+
+    @Transactional
+    public void updateLessonContent(Long lessonId, Long currentUserId, String newTopic, String newRoom) {
+        Lesson lesson = lessonRepository.findById(lessonId).orElseThrow(
+                () -> new LessonNotFoundException(lessonId)
+        );
+
+        if (!lesson.getTeacher().getId().equals(currentUserId)) {
+            throw new AccessDeniedException("You can only update your own lessons");
+        }
+
+        if (newTopic != null) lesson.setTopic(newTopic);
+        if (newRoom != null) lesson.setRoom(newRoom);
     }
 }
