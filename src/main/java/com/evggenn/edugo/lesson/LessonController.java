@@ -95,4 +95,34 @@ public class LessonController {
 
         return ResponseEntity.ok(LessonResponse.from(lesson));
     }
+
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<Void> completeLesson(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails principal) {
+
+        lessonService.completeLesson(id, principal.getId());
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelLesson(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails principal) {
+
+        lessonService.cancelLesson(id, principal.getId());
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteLesson(
+            @PathVariable Long id) {
+
+        lessonService.deleteLesson(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
 }

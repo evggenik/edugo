@@ -29,6 +29,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").denyAll()
+                        .requestMatchers(HttpMethod.POST, "/lessons/*/complete").hasAuthority("TEACHER")
+                        .requestMatchers(HttpMethod.POST, "/lessons/*/cancel").hasAuthority("TEACHER")
+                        .requestMatchers(HttpMethod.DELETE, "/lessons/*").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/lessons/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/lessons/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/lessons/**").hasAuthority("ADMIN")
