@@ -16,7 +16,6 @@ import com.evggenn.edugo.user.User;
 import com.evggenn.edugo.user.exception.TeacherDoesNotTeachSubjectException;
 import com.evggenn.edugo.util.AcademicYearUtil;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.util.TriConsumer;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -201,5 +200,52 @@ public class LessonService {
 
         if (newTopic != null) lesson.setTopic(newTopic);
         if (newRoom != null) lesson.setRoom(newRoom);
+    }
+
+    @Transactional
+    public void completeLesson(Long lessonId, Long currentUserId) {
+        Lesson lesson = getLessonTaughtByCurrentUser(lessonId, currentUserId);
+
+        if (lesson.getStatus() != LessonStatus.SCHEDULED) {
+            throw new InvalidLessonStatusException(lesson.getStatus());
+        }
+
+        lesson.setStatus(LessonStatus.COMPLETED);
+    }
+
+    @Transactional
+    public void cancelLesson(Long lessonId, Long currentUserId) {
+        Lesson lesson = getLessonTaughtByCurrentUser(lessonId, currentUserId);
+
+        if (lesson.getStatus() != LessonStatus.SCHEDULED) {
+            throw new InvalidLessonStatusException(lesson.getStatus());
+        }
+
+        lesson.setStatus(LessonStatus.CANCELLED);
+    }
+
+    @Transactional
+    public void deleteLesson(Long lessonId) {
+        Lesson lesson = lessonRepository.findById(lessonId).orElseThrow(
+                () -> new LessonNotFoundException(lessonId)
+        );
+
+        if (lesson.getStatus() != LessonStatus.SCHEDULED) {
+            throw new LessonDeletionNotAllowedException(lesson.getStatus());
+        }
+
+        lessonRepository.delete(lesson);
+    }
+
+    private Lesson getLessonTaughtByCurrentUser(Long lessonId, Long currentUserId) {
+        Lesson lesson = lessonRepository.findById(lessonId).orElseThrow(
+                () -> new LessonNotFoundException(lessonId)
+        );
+
+        if (!lesson.getTeacher().getId().equals(currentUserId)) {
+            throw new AccessDeniedException("You can only update your own lessons");
+        }
+
+        return lesson;
     }
 }

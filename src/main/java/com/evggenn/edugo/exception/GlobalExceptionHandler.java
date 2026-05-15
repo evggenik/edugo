@@ -29,6 +29,12 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler({InvalidLessonStatusException.class, LessonDeletionNotAllowedException.class})
+    public ResponseEntity<Map<String, String>> handleLessonStatusExceptions(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handleAccessDeniedToUpdateLesson(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
