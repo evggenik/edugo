@@ -3,12 +3,14 @@ package com.evggenn.edugo.lesson;
 import com.evggenn.edugo.user.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -80,7 +82,7 @@ public class LessonController {
             @RequestParam Long teacherId,
             @RequestParam Long schoolClassId,
             @RequestParam Long termId) {
-        List<Lesson> lessonList = lessonService.findLessonsByTeacherClassAndTerm(
+        List<Lesson> lessonList = lessonService.getLessonsByTeacherClassAndTerm(
                 teacherId, schoolClassId, termId);
 
         List<LessonResponse> responseList = lessonList.stream().map(LessonResponse::from).toList();
@@ -94,6 +96,31 @@ public class LessonController {
         Lesson lesson = lessonService.getLessonById(id);
 
         return ResponseEntity.ok(LessonResponse.from(lesson));
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<LessonShortResponse>> getLessons(
+            @RequestParam(required = false) Long classId,
+            @RequestParam(required = false) Long teacherId,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime from,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime to) {
+
+        List<Lesson> lessons;
+
+        if (classId != null) {
+            lessons = lessonService.getLessonsByClass(classId, from, to);
+        } else if (teacherId != null) {
+            lessons = lessonService.getLessonsByTeacher(teacherId, from, to);
+        } else {
+            throw new IllegalArgumentException("classId or teacherId is required");
+        }
+
+        return ResponseEntity.ok(lessons.stream()
+                .map(LessonShortResponse::from).toList());
     }
 
     @PostMapping("/{id}/complete")
@@ -124,5 +151,4 @@ public class LessonController {
 
         return ResponseEntity.noContent().build();
     }
-
 }

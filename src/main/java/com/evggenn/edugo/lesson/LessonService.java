@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -176,7 +177,7 @@ public class LessonService {
     }
 
     @Transactional(readOnly = true)
-    public List<Lesson> findLessonsByTeacherClassAndTerm(
+    public List<Lesson> getLessonsByTeacherClassAndTerm(
             Long teacherId, Long schoolClassId, Long termId) {
         return lessonRepository
                 .findLessonsByTeacherClassAndTerm(teacherId, schoolClassId, termId);
@@ -235,6 +236,34 @@ public class LessonService {
         }
 
         lessonRepository.delete(lesson);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Lesson> getLessonsByClass(Long classId, LocalDateTime from,
+                                          LocalDateTime to) {
+        if (ChronoUnit.DAYS.between(from, to) > 31) {
+            throw new InvalidDateRangeException("The period of time cannot exceed 31 days");
+        }
+
+        if (!schoolClassRepository.existsById(classId)) {
+            throw new SchoolClassNotFoundException(classId);
+        }
+
+        return lessonRepository
+                .findAllBySchoolClassIdAndStartTimeBetween(classId, from, to);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Lesson> getLessonsByTeacher(Long teacherId, LocalDateTime from,
+                                          LocalDateTime to) {
+        if (ChronoUnit.DAYS.between(from, to) > 31) {
+            throw new InvalidDateRangeException("The period of time cannot exceed 31 days");
+        }
+
+        userService.findTeacherByIdOrThrow(teacherId);
+
+        return lessonRepository
+                .findAllByTeacherIdAndStartTimeBetween(teacherId, from, to);
     }
 
     private Lesson getLessonTaughtByCurrentUser(Long lessonId, Long currentUserId) {
