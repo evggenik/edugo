@@ -179,6 +179,13 @@ public class LessonService {
     @Transactional(readOnly = true)
     public List<Lesson> getLessonsByTeacherClassAndTerm(
             Long teacherId, Long schoolClassId, Long termId) {
+        userService.findTeacherByIdOrThrow(teacherId);
+        if (!schoolClassRepository.existsById(schoolClassId)) {
+            throw new SchoolClassNotFoundException(schoolClassId);
+        }
+        termRepository.findByIdAndAcademicYear(termId, AcademicYearUtil.getCurrentAcademicYear())
+                .orElseThrow(() -> new TermNotFoundException(termId, AcademicYearUtil.getCurrentAcademicYear()));
+
         return lessonRepository
                 .findLessonsByTeacherClassAndTerm(teacherId, schoolClassId, termId);
     }
@@ -255,6 +262,16 @@ public class LessonService {
     public List<Lesson> getLessonsByTeacher(Long teacherId, LocalDateTime from,
                                           LocalDateTime to) {
         validateDateRange(from, to);
+
+        userService.findTeacherByIdOrThrow(teacherId);
+
+        return lessonRepository
+                .findAllByTeacherIdAndStartTimeBetween(teacherId, from, to);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Lesson> getLessonsByTeacherAndClass(
+            Long teacherId, Long classId, Long termId) {
 
         userService.findTeacherByIdOrThrow(teacherId);
 

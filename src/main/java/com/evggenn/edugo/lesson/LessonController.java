@@ -77,7 +77,7 @@ public class LessonController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping
+    @GetMapping("/journal")
     public ResponseEntity<List<LessonResponse>> getLessonsByTeacherClassAndTerm(
             @RequestParam Long teacherId,
             @RequestParam Long schoolClassId,
@@ -85,9 +85,8 @@ public class LessonController {
         List<Lesson> lessonList = lessonService.getLessonsByTeacherClassAndTerm(
                 teacherId, schoolClassId, termId);
 
-        List<LessonResponse> responseList = lessonList.stream().map(LessonResponse::from).toList();
-
-        return ResponseEntity.ok(responseList);
+        return ResponseEntity.ok(lessonList.stream()
+                .map(LessonResponse::from).toList());
     }
 
     @GetMapping("/{id}")
