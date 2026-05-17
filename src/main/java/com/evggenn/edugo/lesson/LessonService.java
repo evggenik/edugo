@@ -241,9 +241,7 @@ public class LessonService {
     @Transactional(readOnly = true)
     public List<Lesson> getLessonsByClass(Long classId, LocalDateTime from,
                                           LocalDateTime to) {
-        if (ChronoUnit.DAYS.between(from, to) > 31) {
-            throw new InvalidDateRangeException("The period of time cannot exceed 31 days");
-        }
+        validateDateRange(from, to);
 
         if (!schoolClassRepository.existsById(classId)) {
             throw new SchoolClassNotFoundException(classId);
@@ -256,14 +254,21 @@ public class LessonService {
     @Transactional(readOnly = true)
     public List<Lesson> getLessonsByTeacher(Long teacherId, LocalDateTime from,
                                           LocalDateTime to) {
-        if (ChronoUnit.DAYS.between(from, to) > 31) {
-            throw new InvalidDateRangeException("The period of time cannot exceed 31 days");
-        }
+        validateDateRange(from, to);
 
         userService.findTeacherByIdOrThrow(teacherId);
 
         return lessonRepository
                 .findAllByTeacherIdAndStartTimeBetween(teacherId, from, to);
+    }
+
+    private void validateDateRange(LocalDateTime from, LocalDateTime to) {
+        if (!from.isBefore(to)) {
+            throw new InvalidDateRangeException("'from' must be before 'to'");
+        }
+        if (ChronoUnit.DAYS.between(from, to) > 31) {
+            throw new InvalidDateRangeException("The period of time cannot exceed 31 days");
+        }
     }
 
     private Lesson getLessonTaughtByCurrentUser(Long lessonId, Long currentUserId) {

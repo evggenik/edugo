@@ -111,12 +111,14 @@ public class LessonController {
 
         List<Lesson> lessons;
 
+        if ((classId == null && teacherId == null) || (classId != null && teacherId != null)) {
+            throw new IllegalArgumentException("Exactly one of classId or teacherId is required");
+        }
+
         if (classId != null) {
             lessons = lessonService.getLessonsByClass(classId, from, to);
-        } else if (teacherId != null) {
-            lessons = lessonService.getLessonsByTeacher(teacherId, from, to);
         } else {
-            throw new IllegalArgumentException("classId or teacherId is required");
+            lessons = lessonService.getLessonsByTeacher(teacherId, from, to);
         }
 
         return ResponseEntity.ok(lessons.stream()
