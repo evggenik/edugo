@@ -1,8 +1,6 @@
 package com.evggenn.edugo.lesson;
 
-import com.evggenn.edugo.lesson.exception.InvalidTimesException;
-import com.evggenn.edugo.lesson.exception.LessonConflictException;
-import com.evggenn.edugo.lesson.exception.LessonOutOfTermException;
+import com.evggenn.edugo.lesson.exception.*;
 import com.evggenn.edugo.schoolclass.SchoolClass;
 import com.evggenn.edugo.schoolclass.SchoolClassRepository;
 import com.evggenn.edugo.schoolclass.exception.ClassIsArchivedException;
@@ -27,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -122,9 +121,9 @@ class LessonServiceTest {
     @Test
     void createLesson_shouldThrow_whenStartTimeAfterEndTime() {
         LocalDateTime startTime = LocalDateTime.of(
-                2026, 05, 20, 9, 10, 0);
+                2026, 5, 20, 9, 10, 0);
         LocalDateTime endTime = LocalDateTime.of(
-                2026, 05, 20, 8, 30, 0);
+                2026, 5, 20, 8, 30, 0);
 
 
         assertThatThrownBy(() ->
@@ -337,9 +336,9 @@ class LessonServiceTest {
     @Test
     void createLesson_shouldThrow_whenLessonOutOfTerm() {
         LocalDateTime lessonStartTime = LocalDateTime.of(
-                2026, 02, 20, 8, 30, 0);
+                2026, 2, 20, 8, 30, 0);
         LocalDateTime lessonEndTime = LocalDateTime.of(
-                2026, 02, 20, 9, 10, 0);
+                2026, 2, 20, 9, 10, 0);
 
         SchoolClass schoolClass = getSchoolClass();
         Long classId = 1L;
@@ -461,93 +460,239 @@ class LessonServiceTest {
 
 
     @Test
-    void updateLesson() {
-        // Given
+    void updateLesson_shouldUpdateLesson_whenStatusIsScheduled() {
+        Long lessonId = 1L;
+        String topic = "Многочлены";
+        LocalDateTime lessonStartTime =  LocalDateTime
+                .of(2026, 5, 20, 9, 20, 0);
+        LocalDateTime lessonEndTime = LocalDateTime
+                .of(2026, 5, 20, 10, 0, 0);
+        String room = "42";
+        Long schoolClassId = 1L;
+        Long subjectId = 1L;
+        Long teacherId = 1L;
+        Long  termId = 1L;
 
-        // When
+        Lesson lesson = getLesson();
+        SchoolClass schoolClass = getSchoolClass();
+        User mathsTeacher  = getMathsTeacher();
 
-        //Then
+        Subject subject = new Subject("Maths");
+        subject.setId(1L);
 
+        Term term = getTermOfCurrentYear();
+
+        when(lessonRepository.findById(lessonId)).thenReturn(Optional.of(lesson));
+        when(schoolClassRepository.findById(schoolClassId))
+                .thenReturn(Optional.of(schoolClass));
+        when(userService.findTeacherByIdOrThrow(teacherId)).thenReturn(mathsTeacher);
+        when(subjectRepository.findById(subjectId)).thenReturn(Optional.of(subject));
+        when(termRepository.findByIdAndAcademicYear(termId, currentAcademicYear))
+                .thenReturn(Optional.of(term));
+        when(lessonRepository.existsOverlappingTimesExcludingId(
+                lessonId, schoolClassId, lessonStartTime, lessonEndTime)).thenReturn(false);
+        when(lessonRepository.existsOverlappingByTeacherExcludingId(
+                lessonId, teacherId, lessonStartTime, lessonEndTime)).thenReturn(false);
+
+        lessonService.updateLesson(
+                lessonId,
+                topic,
+                lessonStartTime,
+                lessonEndTime,
+                room,
+                schoolClassId,
+                subjectId,
+                teacherId,
+                termId
+        );
+
+        assertThat(lesson.getTopic()).isEqualTo(topic);
+        assertThat(lesson.getStartTime()).isEqualTo(lessonStartTime);
+        assertThat(lesson.getEndTime()).isEqualTo(lessonEndTime);
+        assertThat(lesson.getRoom()).isEqualTo(room);
+        assertThat(lesson.getSchoolClass()).isEqualTo(schoolClass);
+        assertThat(lesson.getTeacher()).isEqualTo(mathsTeacher);
+        assertThat(lesson.getSubject()).isEqualTo(subject);
+        assertThat(lesson.getTerm()).isEqualTo(term);
+
+        verify(lessonRepository)
+                .existsOverlappingTimesExcludingId(
+                        lessonId, schoolClassId, lessonStartTime, lessonEndTime);
+
+        verify(lessonRepository)
+                .existsOverlappingByTeacherExcludingId(
+                        lessonId, teacherId, lessonStartTime, lessonEndTime);
+        verify(lessonRepository, never()).save(any());
     }
 
     @Test
-    void updateLessonContent() {
-        // Given
+    void updateLesson_shouldThrow_whenLessonNotFound() {
+        Long lessonId = 1L;
 
-        // When
+        when(lessonRepository.findById(lessonId)).thenReturn(Optional.empty());
 
-        //Then
-
+        assertThatThrownBy(() -> lessonService.updateLesson(
+                lessonId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        )).isInstanceOf(LessonNotFoundException.class);
+        verifyNoInteractions(
+                schoolClassRepository,
+                subjectRepository,
+                termRepository,
+                userService
+        );
     }
 
     @Test
-    void getLessonById() {
-        // Given
+    void updateLesson_shouldThrow_whenLessonStatusNotScheduled() {
+        Lesson lesson = getLesson();
+        Long lessonId = lesson.getId();
+        lesson.setStatus(LessonStatus.COMPLETED);
 
-        // When
+        when(lessonRepository.findById(lessonId)).thenReturn(Optional.of(lesson));
 
-        //Then
-
+        assertThatThrownBy(() -> lessonService.updateLesson(
+                lessonId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        )).isInstanceOf(LessonNotEditableException.class);
+        verify(lessonRepository).findById(lessonId);
+        verifyNoMoreInteractions(lessonRepository);
     }
 
     @Test
-    void getLessonsByTeacherClassAndTerm() {
-        // Given
+    void updateLesson_shouldThrow_whenEndTimeIsBeforeStartTime() {
+        Lesson lesson = getLesson();
+        Long lessonId = lesson.getId();
+        LocalDateTime startTime = LocalDateTime.of(
+                2026, 5, 20, 9, 10, 0);
+        LocalDateTime endTime = LocalDateTime.of(
+                2026, 5, 20, 8, 30, 0);
 
-        // When
+        when(lessonRepository.findById(lessonId)).thenReturn(Optional.of(lesson));
 
-        //Then
-
+        assertThatThrownBy(() -> lessonService.updateLesson(
+                lessonId,
+                null,
+                startTime,
+                endTime,
+                null,
+                null,
+                null,
+                null,
+                null
+        )).isInstanceOf(InvalidTimesException.class);
+        verify(lessonRepository).findById(lessonId);
+        verifyNoMoreInteractions(lessonRepository);
+        verifyNoInteractions(
+                schoolClassRepository,
+                subjectRepository,
+                termRepository,
+                userService
+        );
     }
 
     @Test
-    void getLessonsByClass() {
-        // Given
+    void updateLessonContent_shouldUpdateLesson_whenTeacherIsCurrentUser() {
+        Lesson lesson = getLesson();
+        Long lessonId = lesson.getId();
+        Long currentUserId = 1L;
+        String newTopic = "New Topic";
+        String newRoom = "New Room";
 
-        // When
+        when(lessonRepository.findById(lesson.getId())).thenReturn(Optional.of(lesson));
 
-        //Then
+        lessonService.updateLessonContent(lessonId, currentUserId, newTopic, newRoom);
 
+        assertThat(lesson.getTopic()).isEqualTo(newTopic);
+        assertThat(lesson.getRoom()).isEqualTo(newRoom);
+        verify(lessonRepository, never()).save(any());
     }
 
     @Test
-    void getLessonsByTeacher() {
-        // Given
+    void updateLessonContent_shouldThrow_whenTeacherIsNotCurrentUser() {
+        Lesson lesson = getLesson();
+        Long lessonId = lesson.getId();
+        Long currentUserId = 99L;
 
-        // When
+        when(lessonRepository.findById(lesson.getId())).thenReturn(Optional.of(lesson));
 
-        //Then
-
+        assertThatThrownBy(
+                () -> lessonService.updateLessonContent(
+                        lessonId, currentUserId, null, null)
+        ).isInstanceOf(AccessDeniedException.class);
+        verify(lessonRepository).findById(lessonId);
+        verifyNoMoreInteractions(lessonRepository);
+        verify(lessonRepository, never()).save(any());
     }
 
     @Test
-    void completeLesson() {
-        // Given
+    void completeLesson_shouldChangeLessonStatusAsCompleted() {
+        Lesson lesson = getLesson();
+        Long lessonId = lesson.getId();
+        Long currentUserId = 1L;
 
-        // When
+        when(lessonRepository.findById(lessonId)).thenReturn(Optional.of(lesson));
+        lessonService.completeLesson(lessonId, currentUserId);
 
-        //Then
-
+        assertThat(lesson.getStatus()).isEqualTo(LessonStatus.COMPLETED);
+        verify(lessonRepository, never()).save(any());
     }
 
     @Test
-    void cancelLesson() {
-        // Given
+    void cancelLesson_shouldChangeLessonStatusAsCancelled() {
+        Lesson lesson = getLesson();
+        Long lessonId = lesson.getId();
+        Long currentUserId = 1L;
 
-        // When
+        when(lessonRepository.findById(lessonId)).thenReturn(Optional.of(lesson));
+        lessonService.cancelLesson(lessonId, currentUserId);
 
-        //Then
-
+        assertThat(lesson.getStatus()).isEqualTo(LessonStatus.CANCELLED);
+        verify(lessonRepository, never()).save(any());
     }
 
     @Test
-    void deleteLesson() {
-        // Given
+    void deleteLesson_shouldDeleteLesson_whenLessonStatusIsScheduled() {
+        Lesson lesson = getLesson();
+        Long lessonId = lesson.getId();
 
-        // When
+        when(lessonRepository.findById(lessonId)).thenReturn(Optional.of(lesson));
+        lessonService.deleteLesson(lessonId);
 
-        //Then
+        verify(lessonRepository).findById(lessonId);
+        verify(lessonRepository).delete(lesson);
+        verifyNoMoreInteractions(lessonRepository);
+    }
 
+    private Lesson getLesson() {
+        Subject subject = new Subject("Maths");
+        subject.setId(1L);
+
+        return Lesson.builder()
+                .id(1L)
+                .topic("Кому на Руси жить хорошо?")
+                .startTime(LESSON_START_TIME)
+                .endTime(LESSON_END_TIME)
+                .room("666")
+                .schoolClass(getSchoolClass())
+                .subject(subject)
+                .teacher(getMathsTeacher())
+                .term(getTermOfCurrentYear())
+                .build();
     }
 
     private SchoolClass getSchoolClass() {

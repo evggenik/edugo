@@ -417,6 +417,8 @@ public class LessonService {
      * <p>Only {@link LessonStatus#SCHEDULED} lessons can be deleted.
      * Completed or cancelled lessons are kept for historical records.</p>
      *
+     * <p>Access is restricted to {@code ADMIN} role at the security layer.</p>
+     *
      * @param lessonId the ID of the lesson to delete
      * @throws LessonNotFoundException          if no lesson found with the given ID
      * @throws LessonDeletionNotAllowedException if lesson status is not SCHEDULED
