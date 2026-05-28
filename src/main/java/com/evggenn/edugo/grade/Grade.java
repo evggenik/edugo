@@ -1,9 +1,12 @@
 package com.evggenn.edugo.grade;
 
 import com.evggenn.edugo.lesson.Lesson;
+import com.evggenn.edugo.subject.Subject;
 import com.evggenn.edugo.term.Term;
 import com.evggenn.edugo.user.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.*;
 
 import java.time.Instant;
@@ -24,7 +27,8 @@ public class Grade {
     private Long id;
 
     @Column(name = "value", nullable = false)
-    private int value;
+    @Min(2) @Max(5)
+    private short value;
 
     @Column(name = "type", length = 20, nullable = false)
     @Enumerated(EnumType.STRING)
@@ -47,6 +51,10 @@ public class Grade {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "period_id")
     private Term term;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subject_id")
+    private Subject subject;
 
     @PrePersist
     protected void onCreate() {
