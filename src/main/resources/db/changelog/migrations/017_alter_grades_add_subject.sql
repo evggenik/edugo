@@ -1,0 +1,2 @@
+ALTER TABLE grades
+ADD COLUMN subject_id BIGINT NOT NULL REFERENCES subjects(id);
