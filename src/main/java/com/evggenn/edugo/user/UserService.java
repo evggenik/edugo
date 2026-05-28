@@ -112,4 +112,14 @@ public class UserService {
         }
         return teacher;
     }
+
+    public User findStudentByIdOrThrow(Long studentId) {
+        User student = userRepo.findByIdWithRoles(studentId)
+                .orElseThrow(() -> new UserNotFoundException(studentId));
+        if (student.getRoles().stream()
+                .noneMatch(role -> role.getName() == RoleName.STUDENT)) {
+            throw new NotStudentException(studentId);
+        }
+        return student;
+    }
 }
