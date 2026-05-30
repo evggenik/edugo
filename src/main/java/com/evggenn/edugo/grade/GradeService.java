@@ -82,9 +82,7 @@ public class GradeService {
     @Transactional
     public void updateGrade(Long id, Short value, String comment, Long currentUserId) {
 
-        Grade grade = gradeRepository.findById(id).orElseThrow(
-                () -> new GradeNotFoundException(id)
-        );
+        Grade grade = getGradeOrThrow(id);
 
         if (grade.getType() == GradeType.LESSON) {
             validateLessonGradeAccess(grade, currentUserId);
@@ -94,7 +92,25 @@ public class GradeService {
 
         if (value != null) grade.setValue(value);
         if (comment != null) grade.setComment(comment);
+    }
 
+    @Transactional
+    public void deleteGrade(Long id, Long currentUserId) {
+
+        Grade grade = getGradeOrThrow(id);
+
+        if (grade.getType() == GradeType.LESSON) {
+            validateLessonGradeAccess(grade, currentUserId);
+        } else {
+            validateFinalGradeAccess(grade, currentUserId);
+        }
+
+        gradeRepository.delete(grade);
+    }
+
+    private Grade getGradeOrThrow(Long id) {
+        return gradeRepository.findById(id)
+                .orElseThrow(() -> new GradeNotFoundException(id));
     }
 
     private void validateLessonGradeAccess(Grade grade, Long currentUserId) {
