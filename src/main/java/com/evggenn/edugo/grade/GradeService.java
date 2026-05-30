@@ -13,10 +13,13 @@ import com.evggenn.edugo.term.TermRepository;
 import com.evggenn.edugo.term.exception.TermNotFoundException;
 import com.evggenn.edugo.user.User;
 import com.evggenn.edugo.user.UserService;
+import com.evggenn.edugo.util.AcademicYearUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 
 @Service
@@ -106,6 +109,25 @@ public class GradeService {
         }
 
         gradeRepository.delete(grade);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Grade> getGradesBySubjectTermAndStudent(
+            Long subjectId, Long termId, Long studentId) {
+
+        subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new SubjectNotFoundException(subjectId));
+
+        termRepository.findByIdAndAcademicYear(
+                        termId,
+                        AcademicYearUtil.getCurrentAcademicYear())
+                .orElseThrow(() -> new TermNotFoundException(termId));
+
+        userService.findStudentByIdOrThrow(studentId);
+
+        return gradeRepository.findAllBySubjectAndTermAndStudent(
+                subjectId, termId, studentId
+        );
     }
 
     private Grade getGradeOrThrow(Long id) {
