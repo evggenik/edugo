@@ -1,5 +1,9 @@
 package com.evggenn.edugo.exception;
 
+import com.evggenn.edugo.grade.exception.GradeNotEditableException;
+import com.evggenn.edugo.grade.exception.GradeNotFoundException;
+import com.evggenn.edugo.grade.exception.InvalidFinalGradeException;
+import com.evggenn.edugo.grade.exception.InvalidLessonGradeException;
 import com.evggenn.edugo.lesson.exception.*;
 import com.evggenn.edugo.schoolclass.exception.SchoolClassAlreadyExistsException;
 import com.evggenn.edugo.schoolclass.exception.SchoolClassNotFoundException;
@@ -28,6 +32,21 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(GradeNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleGradeNotFound(GradeNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler(GradeNotEditableException.class)
+    public ResponseEntity<Map<String, String>> handleGradeNotEditable(GradeNotEditableException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler({InvalidFinalGradeException.class, InvalidLessonGradeException.class})
+    public ResponseEntity<Map<String, String>> handleInvalidGrade(RuntimeException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleInvalidArgumentException(IllegalArgumentException ex) {

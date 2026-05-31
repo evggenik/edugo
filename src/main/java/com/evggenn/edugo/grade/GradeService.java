@@ -55,7 +55,7 @@ public class GradeService {
         if (type == GradeType.LESSON) {
             if (lessonId == null) throw new InvalidLessonGradeException(type);
 
-            lesson = lessonRepository.findById(lessonId)
+            lesson = lessonRepository.findByIdWithSubject(lessonId)
                     .orElseThrow(() -> new LessonNotFoundException(lessonId));
 
             subject = lesson.getSubject();
@@ -80,6 +80,8 @@ public class GradeService {
                 .build();
 
         return gradeRepository.save(grade);
+//        return gradeRepository.findByIdWithDetails(saved.getId())
+//                .orElseThrow(() -> new IllegalStateException("Grade not found after save"));
     }
 
     @Transactional

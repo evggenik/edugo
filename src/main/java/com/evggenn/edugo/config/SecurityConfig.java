@@ -29,6 +29,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").denyAll()
+                        .requestMatchers(HttpMethod.POST, "/grades/**").hasAuthority("TEACHER")
                         .requestMatchers(HttpMethod.POST, "/lessons/*/complete").hasAuthority("TEACHER")
                         .requestMatchers(HttpMethod.POST, "/lessons/*/cancel").hasAuthority("TEACHER")
                         .requestMatchers(HttpMethod.DELETE, "/lessons/*").hasAuthority("ADMIN")
@@ -38,7 +39,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/lessons/*/content").hasAuthority("TEACHER")
                         .requestMatchers(HttpMethod.GET, "/lessons/journal/**")
                             .hasAnyAuthority("TEACHER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/users/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/users/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/users/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/users/**").hasAuthority("ADMIN")
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()

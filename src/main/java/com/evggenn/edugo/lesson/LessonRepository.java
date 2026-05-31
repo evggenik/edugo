@@ -9,6 +9,9 @@ import java.util.Optional;
 
 public interface LessonRepository extends JpaRepository<Lesson, Long> {
 
+    @Query("SELECT l FROM Lesson l JOIN FETCH l.subject WHERE l.id = :id")
+    Optional<Lesson> findByIdWithSubject(Long id);
+
     @Query("""
         SELECT l FROM Lesson l
         JOIN FETCH l.schoolClass
