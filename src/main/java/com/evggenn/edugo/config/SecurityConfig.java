@@ -30,6 +30,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").denyAll()
                         .requestMatchers(HttpMethod.POST, "/grades/**").hasAuthority("TEACHER")
+                        .requestMatchers(HttpMethod.PATCH, "/grades/**").hasAuthority("TEACHER")
                         .requestMatchers(HttpMethod.POST, "/lessons/*/complete").hasAuthority("TEACHER")
                         .requestMatchers(HttpMethod.POST, "/lessons/*/cancel").hasAuthority("TEACHER")
                         .requestMatchers(HttpMethod.DELETE, "/lessons/*").hasAuthority("ADMIN")

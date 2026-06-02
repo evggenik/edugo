@@ -41,4 +41,20 @@ public class GradeController {
 
         return ResponseEntity.created(location).body(GradeResponse.from(grade));
     }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Void> updateGrade(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateGradeRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        gradeService.updateGrade(
+                id,
+                request.value(),
+                request.comment(),
+                currentUser.getId()
+        );
+
+        return ResponseEntity.noContent().build();
+    }
 }
