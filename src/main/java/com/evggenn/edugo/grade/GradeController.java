@@ -1,8 +1,10 @@
 package com.evggenn.edugo.grade;
 
+import com.evggenn.edugo.user.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -17,7 +19,8 @@ public class GradeController {
 
     @PostMapping
     public ResponseEntity<GradeResponse> createGrade(
-            @Valid @RequestBody CreateGradeRequest request) {
+            @Valid @RequestBody CreateGradeRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         Grade grade = gradeService.createGrade(
                 request.value(),
@@ -26,7 +29,8 @@ public class GradeController {
                 request.studentId(),
                 request.lessonId(),
                 request.termId(),
-                request.subjectId()
+                request.subjectId(),
+                currentUser.getId()
         );
 
         URI location = ServletUriComponentsBuilder

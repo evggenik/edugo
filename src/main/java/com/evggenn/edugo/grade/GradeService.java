@@ -44,7 +44,8 @@ public class GradeService {
             Long studentId,
             Long lessonId,
             Long termId,
-            Long subjectId) {
+            Long subjectId,
+            Long currentUserId) {
 
         Lesson lesson = null;
         Term term = null;
@@ -57,6 +58,11 @@ public class GradeService {
 
             lesson = lessonRepository.findByIdWithSubject(lessonId)
                     .orElseThrow(() -> new LessonNotFoundException(lessonId));
+
+            if (!lesson.getTeacher().getId().equals(currentUserId)) {
+                throw new AccessDeniedException(
+                        "You can only create grades for your own lessons");
+            }
 
             subject = lesson.getSubject();
         } else {
@@ -80,8 +86,6 @@ public class GradeService {
                 .build();
 
         return gradeRepository.save(grade);
-//        return gradeRepository.findByIdWithDetails(saved.getId())
-//                .orElseThrow(() -> new IllegalStateException("Grade not found after save"));
     }
 
     @Transactional
