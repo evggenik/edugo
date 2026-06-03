@@ -11,11 +11,14 @@ import com.evggenn.edugo.subject.exception.SubjectNotFoundException;
 import com.evggenn.edugo.term.Term;
 import com.evggenn.edugo.term.TermRepository;
 import com.evggenn.edugo.term.exception.TermNotFoundException;
+import com.evggenn.edugo.user.RoleName;
 import com.evggenn.edugo.user.User;
 import com.evggenn.edugo.user.UserService;
 import com.evggenn.edugo.util.AcademicYearUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,7 +122,18 @@ public class GradeService {
 
     @Transactional(readOnly = true)
     public List<Grade> getGradesBySubjectTermAndStudent(
-            Long subjectId, Long termId, Long studentId) {
+            Long subjectId, Long termId, Long studentId, Long currentUserId) {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isStudent = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(RoleName.STUDENT.name()));
+
+        // TODO: add PARENT access check via parent_students relationship
+        // requires User.children and User.parents fields to be mapped in User entity
+
+        if (isStudent && !currentUserId.equals(studentId)) {
+            throw new AccessDeniedException("You can only view your own grades");
+        }
 
         subjectRepository.findById(subjectId)
                 .orElseThrow(() -> new SubjectNotFoundException(subjectId));
@@ -131,7 +145,7 @@ public class GradeService {
 
         userService.findStudentByIdOrThrow(studentId);
 
-        return gradeRepository.findAllBySubjectAndTermAndStudent(
+        return gradeRepository.findAllWithDetailsBySubjectAndTermAndStudent(
                 subjectId, termId, studentId
         );
     }

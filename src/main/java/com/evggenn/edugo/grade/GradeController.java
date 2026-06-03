@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -56,5 +57,19 @@ public class GradeController {
         );
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<GradeResponse>> getGrades(
+            @RequestParam Long subjectId,
+            @RequestParam Long termId,
+            @RequestParam Long studentId,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        List<Grade> grades = gradeService.getGradesBySubjectTermAndStudent(
+                subjectId, termId, studentId,  currentUser.getId());
+
+        return ResponseEntity.ok(grades.stream()
+                .map(GradeResponse::from).toList());
     }
 }

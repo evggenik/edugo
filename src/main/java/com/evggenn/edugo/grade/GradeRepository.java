@@ -14,5 +14,16 @@ public interface GradeRepository extends JpaRepository<Grade, Long> {
         AND g.student.id = : studentId
     """)
     List<Grade> findAllBySubjectAndTermAndStudent(
+    @Query("""
+        SELECT g FROM Grade g
+        JOIN FETCH g.student
+        JOIN FETCH g.subject
+        LEFT JOIN FETCH g.lesson
+        LEFT JOIN FETCH g.term
+        WHERE g.student.id = :studentId
+        AND g.subject.id = :subjectId
+        AND g.term.id = :termId
+        """)
+    List<Grade> findAllWithDetailsBySubjectAndTermAndStudent(
             Long subjectId, Long termId, Long studentId);
 }
