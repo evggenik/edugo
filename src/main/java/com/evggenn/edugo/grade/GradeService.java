@@ -150,6 +150,25 @@ public class GradeService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public Grade getGrade(Long id, Long currentUserId) {
+
+        Grade grade = gradeRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new GradeNotFoundException(id));
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isStudent = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(RoleName.STUDENT.name()));
+
+        if (isStudent && !grade.getStudent().getId().equals(currentUserId)) {
+            throw new AccessDeniedException("You can only view your own grades");
+        }
+        // TODO: add PARENT access check via parent_students relationship
+        // requires User.children and User.parents fields to be mapped in User entity
+
+        return grade;
+    }
+
     private Grade getGradeOrThrow(Long id) {
         return gradeRepository.findById(id)
                 .orElseThrow(() -> new GradeNotFoundException(id));

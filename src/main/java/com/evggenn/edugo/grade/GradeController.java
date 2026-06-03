@@ -72,4 +72,14 @@ public class GradeController {
         return ResponseEntity.ok(grades.stream()
                 .map(GradeResponse::from).toList());
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<GradeResponse> getGrade(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        Grade grade = gradeService.getGrade(id, currentUser.getId());
+
+        return ResponseEntity.ok(GradeResponse.from(grade));
+    }
 }
