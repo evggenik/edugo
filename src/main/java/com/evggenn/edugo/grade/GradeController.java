@@ -82,4 +82,14 @@ public class GradeController {
 
         return ResponseEntity.ok(GradeResponse.from(grade));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteGrade(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        gradeService.deleteGrade(id, currentUser.getId());
+
+        return ResponseEntity.noContent().build();
+    }
 }
