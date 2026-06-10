@@ -1,9 +1,12 @@
 package com.evggenn.edugo.grade;
 
+import com.evggenn.edugo.grade.exception.GradeNotEditableException;
+import com.evggenn.edugo.grade.exception.GradeNotFoundException;
 import com.evggenn.edugo.grade.exception.InvalidFinalGradeException;
 import com.evggenn.edugo.grade.exception.InvalidLessonGradeException;
 import com.evggenn.edugo.lesson.Lesson;
 import com.evggenn.edugo.lesson.LessonRepository;
+import com.evggenn.edugo.lesson.LessonStatus;
 import com.evggenn.edugo.lesson.exception.LessonNotFoundException;
 import com.evggenn.edugo.subject.Subject;
 import com.evggenn.edugo.subject.SubjectRepository;
@@ -352,14 +355,175 @@ class GradeServiceTest {
     }
 
     @Test
-    void updateGrade() {
-        // Given
+    void updateGrade_shouldUpdateValueAndComment_whenBothProvided() {
+        Long gradeId = 1L;
+        Long currentUserId = 1L;
+        short newValue = 2;
+        String newComment = "опять двойка(";
 
-        // When
+        User teacher = User.builder().id(currentUserId).build();
 
-        //Then
+        Lesson lesson = Lesson.builder()
+                .teacher(teacher)
+                .status(LessonStatus.COMPLETED)
+                .build();
 
+        Grade grade = Grade.builder()
+                .id(gradeId)
+                .value((short) 5)
+                .type(GradeType.LESSON)
+                .comment("ну, ты францууус!")
+                .gradedAt(null)
+                .student(null)
+                .lesson(lesson)
+                .term(null)
+                .subject(null)
+                .build();
+
+        when(gradeRepository.findById(gradeId)).thenReturn(Optional.of(grade));
+
+        gradeService.updateGrade(gradeId, newValue, newComment, currentUserId);
+
+        assertThat(grade.getValue()).isEqualTo(newValue);
+        assertThat(grade.getComment()).isEqualTo(newComment);
+        verify(gradeRepository).findById(gradeId);
     }
+
+    @Test
+    void updateGrade_shouldUpdateOnlyValue_whenCommentIsNull() {
+        Long gradeId = 1L;
+        Long currentUserId = 1L;
+        short oldValue = 5;
+        short newValue = 2;
+        String oldComment = "ну, ты француз!";
+
+        User teacher = User.builder().id(currentUserId).build();
+
+        Lesson lesson = Lesson.builder()
+                .teacher(teacher)
+                .status(LessonStatus.COMPLETED)
+                .build();
+
+        Grade grade = Grade.builder()
+                .id(gradeId)
+                .value(oldValue)
+                .type(GradeType.LESSON)
+                .comment(oldComment)
+                .gradedAt(null)
+                .student(null)
+                .lesson(lesson)
+                .term(null)
+                .subject(null)
+                .build();
+
+        when(gradeRepository.findById(gradeId)).thenReturn(Optional.of(grade));
+
+        gradeService.updateGrade(gradeId, newValue, null, currentUserId);
+
+        assertThat(grade.getValue()).isEqualTo(newValue);
+        assertThat(grade.getComment()).isEqualTo(oldComment);
+        verify(gradeRepository).findById(gradeId);
+    }
+
+    @Test
+    void updateGrade_shouldUpdateOnlyComment_whenValueIsNull() {
+        Long gradeId = 1L;
+        Long currentUserId = 1L;
+        short oldValue = 5;
+        short newValue = 2;
+        String oldComment = "ну, ты француз!";
+        String newComment = "пэпэвотафа";
+
+        User teacher = User.builder().id(currentUserId).build();
+
+        Lesson lesson = Lesson.builder()
+                .teacher(teacher)
+                .status(LessonStatus.COMPLETED)
+                .build();
+
+        Grade grade = Grade.builder()
+                .id(gradeId)
+                .value(oldValue)
+                .type(GradeType.LESSON)
+                .comment(oldComment)
+                .gradedAt(null)
+                .student(null)
+                .lesson(lesson)
+                .term(null)
+                .subject(null)
+                .build();
+
+        when(gradeRepository.findById(gradeId)).thenReturn(Optional.of(grade));
+
+        gradeService.updateGrade(gradeId, null, newComment, currentUserId);
+
+        assertThat(grade.getValue()).isEqualTo(oldValue);
+        assertThat(grade.getComment()).isEqualTo(newComment);
+        verify(gradeRepository).findById(gradeId);
+    }
+
+    @Test
+    void updateGrade_shouldThrow_whenGradeNotFound() {
+        Long gradeId = 2L;
+
+        when(gradeRepository.findById(gradeId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+                gradeService.updateGrade(
+                        gradeId, null, null, null))
+                .isInstanceOf(GradeNotFoundException.class)
+                .hasMessageContaining(gradeId.toString());;
+        verify(gradeRepository).findById(gradeId);
+    }
+
+    @Test
+    void updateGrade_shouldThrow_whenLessonStatusIsNotCompleted() {
+        Long gradeId = 2L;
+        Lesson lesson = Lesson.builder()
+                        .status(LessonStatus.SCHEDULED)
+                        .build();
+
+        Grade grade = new Grade();
+        grade.setType(GradeType.LESSON);
+        grade.setLesson(lesson);
+
+        when(gradeRepository.findById(gradeId)).thenReturn(Optional.of(grade));
+
+        assertThatThrownBy(() ->
+                gradeService.updateGrade(
+                        gradeId, null, null, null))
+                .isInstanceOf(GradeNotEditableException.class)
+                .hasMessageContaining(lesson.getStatus().name());
+
+        verify(gradeRepository).findById(gradeId);
+    }
+
+    @Test
+    void updateGrade_shouldThrow_whenCurrentUserNotTeachesThisLesson() {
+        Long currentUserId = 1L;
+        Long gradeId = 2L;
+        User teacher = User.builder().id(2L).build();
+        Lesson lesson = Lesson.builder()
+                .status(LessonStatus.COMPLETED)
+                .teacher(teacher)
+                .build();
+
+        Grade grade = new Grade();
+        grade.setType(GradeType.LESSON);
+        grade.setLesson(lesson);
+
+        when(gradeRepository.findById(gradeId)).thenReturn(Optional.of(grade));
+
+        assertThatThrownBy(() ->
+                gradeService.updateGrade(
+                        gradeId, null, null, currentUserId))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(gradeRepository).findById(gradeId);
+    }
+
+    // TODO: add updateGrade tests for final grade types (QUARTER, YEAR, EXAM)
+    // when validateFinalGradeAccess is implemented
 
     @Test
     void deleteGrade() {
