@@ -1,0 +1,50 @@
+package com.evggenn.edugo.attendance;
+
+import com.evggenn.edugo.attendance.exception.AttendanceAlreadyExistsException;
+import com.evggenn.edugo.attendance.exception.LessonNotCompletedException;
+import com.evggenn.edugo.lesson.Lesson;
+import com.evggenn.edugo.lesson.LessonRepository;
+import com.evggenn.edugo.lesson.LessonStatus;
+import com.evggenn.edugo.lesson.exception.LessonNotFoundException;
+import com.evggenn.edugo.user.User;
+import com.evggenn.edugo.user.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class AttendanceService {
+
+    private final AttendanceRepository attendanceRepository;
+    private final LessonRepository lessonRepository;
+    private final UserService  userService;
+
+    @Transactional
+    public Attendance createAttendance(
+            AttendanceStatus status, Long studentId, Long lessonId) {
+
+        User student = userService.findStudentByIdOrThrow(studentId);
+
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new LessonNotFoundException(lessonId));
+
+        if (lesson.getStatus() != LessonStatus.COMPLETED) {
+            throw new LessonNotCompletedException(lesson.getStatus());
+        }
+
+        if (attendanceRepository.existsByStudentIdAndLessonId(studentId, lessonId)) {
+            throw new AttendanceAlreadyExistsException(studentId, lessonId);
+        }
+
+        Attendance attendance = Attendance.builder()
+                .status(status)
+                .student(student)
+                .lesson(lesson)
+                .build();
+
+        attendanceRepository.save(attendance);
+
+        return attendance;
+    }
+}
