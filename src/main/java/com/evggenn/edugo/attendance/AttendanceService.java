@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AttendanceService {
@@ -46,5 +48,15 @@ public class AttendanceService {
         attendanceRepository.save(attendance);
 
         return attendance;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Attendance> getAttendanceByLesson(Long lessonId) {
+
+        lessonRepository.findById(lessonId).orElseThrow(
+                () -> new LessonNotFoundException(lessonId)
+        );
+
+        return attendanceRepository.findAllByLessonId(lessonId);
     }
 }
