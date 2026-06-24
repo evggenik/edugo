@@ -9,6 +9,7 @@ import com.evggenn.edugo.lesson.exception.LessonNotFoundException;
 import com.evggenn.edugo.user.User;
 import com.evggenn.edugo.user.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,12 +25,20 @@ public class AttendanceService {
 
     @Transactional
     public Attendance createAttendance(
-            AttendanceStatus status, Long studentId, Long lessonId) {
+            AttendanceStatus status,
+            Long studentId,
+            Long lessonId,
+            Long currentUserId) {
 
         User student = userService.findStudentByIdOrThrow(studentId);
 
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new LessonNotFoundException(lessonId));
+
+        if (!lesson.getTeacher().getId().equals(currentUserId)) {
+            throw new AccessDeniedException(
+                    "You can only mark attendance for your own lessons");
+        }
 
         if (lesson.getStatus() != LessonStatus.COMPLETED) {
             throw new LessonNotCompletedException(lesson.getStatus());
