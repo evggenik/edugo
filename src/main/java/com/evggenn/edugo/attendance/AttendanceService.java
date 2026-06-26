@@ -54,9 +54,7 @@ public class AttendanceService {
                 .lesson(lesson)
                 .build();
 
-        attendanceRepository.save(attendance);
-
-        return attendance;
+        return attendanceRepository.save(attendance);
     }
 
     @Transactional(readOnly = true)
