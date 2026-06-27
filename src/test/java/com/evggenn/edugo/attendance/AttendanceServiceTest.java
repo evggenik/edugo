@@ -16,6 +16,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -217,12 +219,42 @@ class AttendanceServiceTest {
     }
 
     @Test
-    void getAttendanceByLesson() {
-        // Given
+    void getAttendanceByLesson_shouldReturnListOfAttendance() {
+        Long lessonId = 1L;
+        Lesson lesson = Lesson.builder().id(lessonId).build();
 
-        // When
+        User student1 =  User.builder().id(10L).build();
+        User student2 =  User.builder().id(20L).build();
 
-        //Then
+        Attendance attendance1 = Attendance.builder()
+                .status(AttendanceStatus.ABSENT).lesson(lesson).student(student1).build();
+        Attendance attendance2 = Attendance.builder()
+                .status(AttendanceStatus.ILL).lesson(lesson).student(student2).build();
 
+        List<Attendance> attendances = List.of(attendance1, attendance2);
+
+        when(lessonRepository.findById(lessonId)).thenReturn(Optional.of(lesson));
+        when(attendanceRepository.findAllByLessonId(lessonId))
+                .thenReturn(attendances);
+
+        List<Attendance> result = attendanceService.getAttendanceByLesson(lessonId);
+
+        assertThat(result).isEqualTo(attendances);
+
+        verify(lessonRepository).findById(lessonId);
+        verify(attendanceRepository).findAllByLessonId(lessonId);
+    }
+
+    @Test
+    void getAttendanceByLesson_shouldThrow_whenLessonNotFound() {
+        Long lessonId = 1L;
+
+        when(lessonRepository.findById(lessonId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> attendanceService.getAttendanceByLesson(lessonId))
+                .isInstanceOf(LessonNotFoundException.class);
+
+        verify(lessonRepository).findById(lessonId);
+        verifyNoInteractions(attendanceRepository);
     }
 }
