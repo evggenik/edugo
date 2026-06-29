@@ -32,6 +32,8 @@ public class AttendanceService {
 
         User student = userService.findStudentByIdOrThrow(studentId);
 
+        // TODO: filter by current academic year
+        //  via findByIdAndAcademicYear (like HomeworkService)
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new LessonNotFoundException(lessonId));
 

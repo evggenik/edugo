@@ -59,6 +59,8 @@ public class GradeService {
         if (type == GradeType.LESSON) {
             if (lessonId == null) throw new InvalidLessonGradeException(type);
 
+            // TODO: filter by current academic year
+            //  via findByIdAndAcademicYear (like HomeworkService)
             lesson = lessonRepository.findByIdWithSubject(lessonId)
                     .orElseThrow(() -> new LessonNotFoundException(lessonId));
 
