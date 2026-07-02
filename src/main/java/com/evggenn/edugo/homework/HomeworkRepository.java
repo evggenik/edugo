@@ -12,4 +12,12 @@ public interface HomeworkRepository extends JpaRepository<Homework, Long> {
 
     @Query("SELECT h FROM Homework h JOIN FETCH h.lesson WHERE h.id = :id")
     Optional<Homework> findByIdWithLesson(Long id);
+
+    @Query("""
+            SELECT h FROM Homework h
+            JOIN FETCH h.lesson l
+            JOIN FETCH l.teacher
+            WHERE h.id = :id
+            """)
+    Optional<Homework> findByIdWithDetails(Long id);
 }

@@ -1,6 +1,7 @@
 package com.evggenn.edugo.homework;
 
 import com.evggenn.edugo.homework.exception.HomeworkAlreadyExistsException;
+import com.evggenn.edugo.homework.exception.HomeworkNotFoundException;
 import com.evggenn.edugo.homework.exception.LessonCancelledException;
 import com.evggenn.edugo.lesson.Lesson;
 import com.evggenn.edugo.lesson.LessonRepository;
@@ -54,5 +55,27 @@ public class HomeworkService {
 
         return homeworkRepository.save(homework);
     }
+
+    @Transactional
+    public void updateHomework(
+            Long id,
+            String description,
+            LocalDate dueDate,
+            Long currentUserId) {
+
+        Homework homework = homeworkRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new HomeworkNotFoundException(id));
+
+        if (!homework.getLesson().getTeacher().getId().equals(currentUserId)) {
+            throw new AccessDeniedException(
+                    "You can only update homeworks for your own lessons"
+            );
+        }
+
+        if (description != null) homework.setDescription(description);
+        if (dueDate != null) homework.setDueDate(dueDate);
+    }
+
+
 
 }
