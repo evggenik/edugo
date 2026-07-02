@@ -76,6 +76,17 @@ public class HomeworkService {
         if (dueDate != null) homework.setDueDate(dueDate);
     }
 
+    @Transactional(readOnly = true)
+    public Homework getHomework(Long id) {
 
+        return homeworkRepository.findById(id)
+                .orElseThrow(() -> new HomeworkNotFoundException(id));
+    }
 
+    @Transactional(readOnly = true)
+    public Homework getHomeworkByLesson(Long lessonId) {
+
+        return homeworkRepository.findByLessonId(lessonId)
+                .orElseThrow(() -> HomeworkNotFoundException.byLesson(lessonId));
+    }
 }
