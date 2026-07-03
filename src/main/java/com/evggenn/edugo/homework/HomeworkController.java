@@ -58,4 +58,20 @@ public class HomeworkController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<HomeworkResponse> getHomework(@PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                HomeworkResponse.from(homeworkService.getHomework(id))
+        );
+    }
+
+    @GetMapping("/lesson/{lessonId}")
+    public ResponseEntity<HomeworkResponse> getHomeworkByLesson(
+            @PathVariable Long lessonId
+    ) {
+        return ResponseEntity.ok(
+                HomeworkResponse.from(homeworkService.getHomeworkByLesson(lessonId))
+        );
+    }
 }
