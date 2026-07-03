@@ -4,6 +4,9 @@ import com.evggenn.edugo.grade.exception.GradeNotEditableException;
 import com.evggenn.edugo.grade.exception.GradeNotFoundException;
 import com.evggenn.edugo.grade.exception.InvalidFinalGradeException;
 import com.evggenn.edugo.grade.exception.InvalidLessonGradeException;
+import com.evggenn.edugo.homework.exception.HomeworkAlreadyExistsException;
+import com.evggenn.edugo.homework.exception.HomeworkNotFoundException;
+import com.evggenn.edugo.homework.exception.LessonCancelledException;
 import com.evggenn.edugo.lesson.exception.*;
 import com.evggenn.edugo.schoolclass.exception.SchoolClassAlreadyExistsException;
 import com.evggenn.edugo.schoolclass.exception.SchoolClassNotFoundException;
@@ -32,6 +35,21 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(HomeworkNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleHomeworkNotFound(HomeworkNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler(HomeworkAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleHomeworkAlreadyExists(HomeworkAlreadyExistsException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler(LessonCancelledException.class)
+    public ResponseEntity<Map<String, String>> handleLessonCancelled(LessonCancelledException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
+    }
 
     @ExceptionHandler(GradeNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleGradeNotFound(GradeNotFoundException e) {
