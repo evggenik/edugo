@@ -6,17 +6,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/homework")
+@RequestMapping("/homeworks")
 public class HomeworkController {
 
     private final HomeworkService homeworkService;
@@ -42,6 +39,23 @@ public class HomeworkController {
 
         return ResponseEntity.created(location)
                 .body(HomeworkResponse.from(homework));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Void> updateHomework(
+            @PathVariable Long id,
+            @RequestBody @Valid HomeworkUpdateRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser
+            ) {
+
+        homeworkService.updateHomework(
+                id,
+                request.description(),
+                request.dueDate(),
+                currentUser.getId()
+        );
+
+        return ResponseEntity.noContent().build();
     }
 
 }

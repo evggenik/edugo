@@ -12,7 +12,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/atendance")
+@RequestMapping("/attendances")
 @RequiredArgsConstructor
 public class AttendanceController {
 

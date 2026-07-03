@@ -29,7 +29,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").denyAll()
-                        .requestMatchers(HttpMethod.POST, "/attendance/**").hasAuthority("TEACHER")
+                        .requestMatchers(HttpMethod.POST, "/homeworks/**").hasAuthority("TEACHER")
+                        .requestMatchers(HttpMethod.PATCH, "/homeworks/**").hasAuthority("TEACHER")
+                        .requestMatchers(HttpMethod.POST, "/attendances/**").hasAuthority("TEACHER")
+                        .requestMatchers(HttpMethod.GET, "/attendances/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/grades/**").hasAuthority("TEACHER")
                         .requestMatchers(HttpMethod.PATCH, "/grades/**").hasAuthority("TEACHER")
                         .requestMatchers(HttpMethod.GET, "/grades/**").authenticated()
