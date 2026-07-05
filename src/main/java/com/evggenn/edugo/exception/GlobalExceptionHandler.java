@@ -1,5 +1,7 @@
 package com.evggenn.edugo.exception;
 
+import com.evggenn.edugo.attendance.exception.AttendanceAlreadyExistsException;
+import com.evggenn.edugo.attendance.exception.LessonNotCompletedException;
 import com.evggenn.edugo.grade.exception.GradeNotEditableException;
 import com.evggenn.edugo.grade.exception.GradeNotFoundException;
 import com.evggenn.edugo.grade.exception.InvalidFinalGradeException;
@@ -8,6 +10,7 @@ import com.evggenn.edugo.homework.exception.HomeworkAlreadyExistsException;
 import com.evggenn.edugo.homework.exception.HomeworkNotFoundException;
 import com.evggenn.edugo.homework.exception.LessonCancelledException;
 import com.evggenn.edugo.lesson.exception.*;
+import com.evggenn.edugo.schoolclass.exception.ClassIsArchivedException;
 import com.evggenn.edugo.schoolclass.exception.SchoolClassAlreadyExistsException;
 import com.evggenn.edugo.schoolclass.exception.SchoolClassNotFoundException;
 import com.evggenn.edugo.schoolclass.exception.StudentAlreadyInClassException;
@@ -35,6 +38,26 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(AttendanceAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleAttendanceAlreadyExists(AttendanceAlreadyExistsException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler(LessonNotCompletedException.class)
+    public ResponseEntity<Map<String, String>> handleLessonNotCompleted(LessonNotCompletedException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler(ClassIsArchivedException.class)
+    public ResponseEntity<Map<String, String>> handleClassIsArchived(ClassIsArchivedException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidDateRangeException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidDateRange(InvalidDateRangeException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+    }
 
     @ExceptionHandler(HomeworkNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleHomeworkNotFound(HomeworkNotFoundException e) {
