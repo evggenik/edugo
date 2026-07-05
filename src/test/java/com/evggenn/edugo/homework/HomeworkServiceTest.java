@@ -333,22 +333,27 @@ class HomeworkServiceTest {
     }
 
     @Test
-    void getHomework() {
-        // Given
+    void getHomework_shouldThrow_whenHomeworkNotFound() {
+        Long id = 1L;
 
-        // When
+        when(homeworkRepository.findById(id)).thenReturn(Optional.empty());
 
-        //Then
+        assertThatThrownBy(() -> homeworkService.getHomework(id))
+                .isInstanceOf(HomeworkNotFoundException.class);
+
+        verify(homeworkRepository).findById(id);
 
     }
 
     @Test
-    void getHomeworkByLesson() {
-        // Given
+    void getHomeworkByLesson_shouldThrow_whenHomeworkNotFound() {
+        Long lessonId = 1L;
 
-        // When
+        when(homeworkRepository.findByLessonId(lessonId)).thenReturn(Optional.empty());
 
-        //Then
+        assertThatThrownBy(() -> homeworkService.getHomeworkByLesson(lessonId))
+                .isInstanceOf(HomeworkNotFoundException.class);
 
+        verify(homeworkRepository).findByLessonId(lessonId);
     }
 }
