@@ -34,12 +34,7 @@ public class HomeworkService {
         Lesson lesson = lessonRepository.findByIdAndAcademicYear(lessonId, academicYear)
                 .orElseThrow(() -> new LessonNotFoundException(lessonId));
 
-        if (dueDate.isBefore(lesson.getStartTime().toLocalDate())) {
-            throw InvalidDueDateException.beforeLesson(dueDate, lesson.getStartTime().toLocalDate());
-        }
-        if (dueDate.isAfter(lesson.getTerm().getEndDate())) {
-            throw InvalidDueDateException.afterTermEnd(dueDate, lesson.getTerm().getEndDate());
-        }
+        validateDueDate(dueDate, lesson);
 
         if (homeworkRepository.existsByLessonId(lessonId)) {
             throw new HomeworkAlreadyExistsException(lessonId);
@@ -81,7 +76,10 @@ public class HomeworkService {
         }
 
         if (description != null) homework.setDescription(description);
-        if (dueDate != null) homework.setDueDate(dueDate);
+        if (dueDate != null) {
+            validateDueDate(dueDate, homework.getLesson());
+            homework.setDueDate(dueDate);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -96,5 +94,14 @@ public class HomeworkService {
 
         return homeworkRepository.findByLessonId(lessonId)
                 .orElseThrow(() -> HomeworkNotFoundException.byLesson(lessonId));
+    }
+
+    private void validateDueDate(LocalDate dueDate, Lesson lesson) {
+        if (dueDate.isBefore(lesson.getStartTime().toLocalDate())) {
+            throw InvalidDueDateException.beforeLesson(dueDate, lesson.getStartTime().toLocalDate());
+        }
+        if (dueDate.isAfter(lesson.getTerm().getEndDate())) {
+            throw InvalidDueDateException.afterTermEnd(dueDate, lesson.getTerm().getEndDate());
+        }
     }
 }
