@@ -1,6 +1,7 @@
 package com.evggenn.edugo.homework;
 
 import com.evggenn.edugo.homework.exception.HomeworkAlreadyExistsException;
+import com.evggenn.edugo.homework.exception.HomeworkNotFoundException;
 import com.evggenn.edugo.homework.exception.LessonCancelledException;
 import com.evggenn.edugo.lesson.Lesson;
 import com.evggenn.edugo.lesson.LessonRepository;
@@ -172,13 +173,163 @@ class HomeworkServiceTest {
     }
 
     @Test
-    void updateHomework() {
-        // Given
+    void updateHomework_shouldUpdateDescriptionAndDueDate_whenBothProvided() {
+        String newDescription = "Учебник, стр.555, упр.777";
+        LocalDate newDueDate = LocalDate.of(2026, 2, 5);
+        Long currentUserId = 11L;
 
-        // When
+        User teacher = User.builder().id(11L).build();
 
-        //Then
+        Lesson lesson = Lesson.builder()
+                .teacher(teacher)
+                .status(LessonStatus.SCHEDULED)
+                .build();
 
+        Homework homework = Homework.builder()
+                .id(2L)
+                .description("Учебник, стр.666, упр.999")
+                .dueDate(LocalDate.of(2026, 1, 2))
+                .lesson(lesson)
+                .build();
+
+        when(homeworkRepository.findByIdWithDetails(homework.getId()))
+                .thenReturn(Optional.of(homework));
+
+        homeworkService.updateHomework(
+                2L,
+                newDescription,
+                newDueDate,
+                currentUserId
+        );
+
+        assertThat(homework.getDescription()).isEqualTo(newDescription);
+        assertThat(homework.getDueDate()).isEqualTo(newDueDate);
+
+        verify(homeworkRepository).findByIdWithDetails(homework.getId());
+        verifyNoMoreInteractions(homeworkRepository);
+    }
+
+    @Test
+    void updateHomework_shouldUpdateOnlyDescription_whenDueDateIsNull() {
+        String newDescription = "Учебник, стр.555, упр.777";
+        LocalDate newDueDate = null;
+        LocalDate oldDueDate = LocalDate.of(2026, 1, 2);
+        Long currentUserId = 11L;
+
+        User teacher = User.builder().id(11L).build();
+
+        Lesson lesson = Lesson.builder()
+                .teacher(teacher)
+                .status(LessonStatus.SCHEDULED)
+                .build();
+
+        Homework homework = Homework.builder()
+                .id(2L)
+                .description("Учебник, стр.666, упр.999")
+                .dueDate(oldDueDate)
+                .lesson(lesson)
+                .build();
+
+        when(homeworkRepository.findByIdWithDetails(homework.getId()))
+                .thenReturn(Optional.of(homework));
+
+        homeworkService.updateHomework(
+                2L,
+                newDescription,
+                newDueDate,
+                currentUserId
+        );
+
+        assertThat(homework.getDescription()).isEqualTo(newDescription);
+        assertThat(homework.getDueDate()).isEqualTo(oldDueDate);
+
+        verify(homeworkRepository).findByIdWithDetails(homework.getId());
+        verifyNoMoreInteractions(homeworkRepository);
+    }
+
+    @Test
+    void updateHomework_shouldUpdateOnlyDueDate_whenDescriptionIsNull() {
+        String newDescription = null;
+        String oldDescription = "Учебник, стр.555, упр.777";
+        LocalDate oldDueDate = LocalDate.of(2026, 1, 2);
+        LocalDate newDueDate = LocalDate.of(2026, 2, 5);
+        Long currentUserId = 11L;
+
+        User teacher = User.builder().id(11L).build();
+
+        Lesson lesson = Lesson.builder()
+                .teacher(teacher)
+                .status(LessonStatus.SCHEDULED)
+                .build();
+
+        Homework homework = Homework.builder()
+                .id(2L)
+                .description(oldDescription)
+                .dueDate(oldDueDate)
+                .lesson(lesson)
+                .build();
+
+        when(homeworkRepository.findByIdWithDetails(homework.getId()))
+                .thenReturn(Optional.of(homework));
+
+        homeworkService.updateHomework(
+                2L,
+                newDescription,
+                newDueDate,
+                currentUserId
+        );
+
+        assertThat(homework.getDescription()).isEqualTo(oldDescription);
+        assertThat(homework.getDueDate()).isEqualTo(newDueDate);
+
+        verify(homeworkRepository).findByIdWithDetails(homework.getId());
+        verifyNoMoreInteractions(homeworkRepository);
+    }
+
+    @Test
+    void updateHomework_shouldThrow_whenHomeworkNotFound() {
+        Homework homework = Homework.builder()
+                .id(2L)
+                .build();
+
+        when(homeworkRepository.findByIdWithDetails(homework.getId()))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> homeworkService.updateHomework(
+                2L,
+                null,
+                null,
+                null
+        )).isInstanceOf(HomeworkNotFoundException.class);
+
+        verify(homeworkRepository).findByIdWithDetails(homework.getId());
+    }
+
+    @Test
+    void updateHomework_shouldThrow_whenCurrentUserIsNotLessonTeacher() {
+        Long currentUserId = 11L;
+        User teacher = User.builder().id(22L).build();
+
+        Lesson lesson = Lesson.builder()
+                .teacher(teacher)
+                .build();
+
+        Homework homework = Homework.builder()
+                .id(2L)
+                .lesson(lesson)
+                .build();
+
+        when(homeworkRepository.findByIdWithDetails(homework.getId()))
+                .thenReturn(Optional.of(homework));
+
+        assertThatThrownBy(() -> homeworkService.updateHomework(
+                2L,
+                null,
+                null,
+                currentUserId
+        )).isInstanceOf(AccessDeniedException.class);
+
+        verify(homeworkRepository).findByIdWithDetails(homework.getId());
     }
 
     @Test
