@@ -128,6 +128,7 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
     @Query("""
         SELECT l FROM Lesson l
         JOIN FETCH l.teacher
+        JOIN FETCH l.term
         WHERE l.id = :id AND l.term.academicYear = :academicYear
         """)
     Optional<Lesson> findByIdAndAcademicYear(Long id, String academicYear);

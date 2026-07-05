@@ -8,6 +8,7 @@ import com.evggenn.edugo.grade.exception.InvalidFinalGradeException;
 import com.evggenn.edugo.grade.exception.InvalidLessonGradeException;
 import com.evggenn.edugo.homework.exception.HomeworkAlreadyExistsException;
 import com.evggenn.edugo.homework.exception.HomeworkNotFoundException;
+import com.evggenn.edugo.homework.exception.InvalidDueDateException;
 import com.evggenn.edugo.homework.exception.LessonCancelledException;
 import com.evggenn.edugo.lesson.exception.*;
 import com.evggenn.edugo.schoolclass.exception.ClassIsArchivedException;
@@ -56,6 +57,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidDateRangeException.class)
     public ResponseEntity<Map<String, String>> handleInvalidDateRange(InvalidDateRangeException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidDueDateException.class)
+    public ResponseEntity<Map<String, String>> handleHomeworkNotFound(InvalidDueDateException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
     }
 

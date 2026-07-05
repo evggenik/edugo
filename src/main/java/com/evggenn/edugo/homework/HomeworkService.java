@@ -2,6 +2,7 @@ package com.evggenn.edugo.homework;
 
 import com.evggenn.edugo.homework.exception.HomeworkAlreadyExistsException;
 import com.evggenn.edugo.homework.exception.HomeworkNotFoundException;
+import com.evggenn.edugo.homework.exception.InvalidDueDateException;
 import com.evggenn.edugo.homework.exception.LessonCancelledException;
 import com.evggenn.edugo.lesson.Lesson;
 import com.evggenn.edugo.lesson.LessonRepository;
@@ -32,6 +33,13 @@ public class HomeworkService {
 
         Lesson lesson = lessonRepository.findByIdAndAcademicYear(lessonId, academicYear)
                 .orElseThrow(() -> new LessonNotFoundException(lessonId));
+
+        if (dueDate.isBefore(lesson.getStartTime().toLocalDate())) {
+            throw InvalidDueDateException.beforeLesson(dueDate, lesson.getStartTime().toLocalDate());
+        }
+        if (dueDate.isAfter(lesson.getTerm().getEndDate())) {
+            throw InvalidDueDateException.afterTermEnd(dueDate, lesson.getTerm().getEndDate());
+        }
 
         if (homeworkRepository.existsByLessonId(lessonId)) {
             throw new HomeworkAlreadyExistsException(lessonId);
