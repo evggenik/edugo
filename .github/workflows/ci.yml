@@ -26,4 +26,4 @@ jobs:
         # @SpringBootTest that requires a real Postgres connection, which
         # this pipeline doesn't provide yet. Revisit once integration tests
         # (e.g. Testcontainers) are added to the pipeline.
-	    run: mvn test --batch-mode -Dtest='!EdugoApplicationTests'
+        run: mvn test --batch-mode -Dtest='!EdugoApplicationTests'
