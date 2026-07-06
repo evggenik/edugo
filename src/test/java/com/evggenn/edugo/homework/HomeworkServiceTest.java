@@ -2,11 +2,13 @@ package com.evggenn.edugo.homework;
 
 import com.evggenn.edugo.homework.exception.HomeworkAlreadyExistsException;
 import com.evggenn.edugo.homework.exception.HomeworkNotFoundException;
+import com.evggenn.edugo.homework.exception.InvalidDueDateException;
 import com.evggenn.edugo.homework.exception.LessonCancelledException;
 import com.evggenn.edugo.lesson.Lesson;
 import com.evggenn.edugo.lesson.LessonRepository;
 import com.evggenn.edugo.lesson.LessonStatus;
 import com.evggenn.edugo.lesson.exception.LessonNotFoundException;
+import com.evggenn.edugo.term.Term;
 import com.evggenn.edugo.user.User;
 import com.evggenn.edugo.util.AcademicYearUtil;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,16 +43,25 @@ class HomeworkServiceTest {
     @Test
     void createHomework_shouldCreateHomework_whenDataIsValid() {
         String description = "Учебник, стр.666, упр.999";
-        LocalDate dueDate = LocalDate.of(2026, 1, 2);
+        LocalDate dueDate = LocalDate.of(2026, 1, 21);
         Long lessonId = 1L;
         String academicYear = AcademicYearUtil.getCurrentAcademicYear();
         Long currentUserId = 11L;
 
         User teacher = User.builder().id(11L).build();
 
+        Term term = new Term(
+                "2 четверть",
+                LocalDate.of(2026, 1, 10),
+                LocalDate.of(2026, 3, 20),
+                academicYear
+        );
+
         Lesson lesson = Lesson.builder()
                 .teacher(teacher)
                 .status(LessonStatus.SCHEDULED)
+                .startTime(LocalDateTime.of(2026, 1, 12, 8, 30))
+                .term(term)
                 .build();
 
         when(lessonRepository.findByIdAndAcademicYear(lessonId, academicYear))
@@ -92,10 +104,94 @@ class HomeworkServiceTest {
     }
 
     @Test
+    void createHomework_shouldThrow_whenDueDateIsBeforeLessonDate() {
+        LocalDate dueDate = LocalDate.of(2026, 1, 10);
+        Long lessonId = 1L;
+        String academicYear = AcademicYearUtil.getCurrentAcademicYear();
+        Term term = new Term(
+                "2 четверть",
+                LocalDate.of(2026, 1, 10),
+                LocalDate.of(2026, 3, 20),
+                academicYear
+        );
+        Lesson lesson = Lesson.builder()
+                .id(lessonId)
+                .startTime(LocalDateTime.of(2026, 1, 12, 8, 30))
+                .term(term)
+                .build();
+
+        when(lessonRepository.findByIdAndAcademicYear(lessonId, academicYear))
+                .thenReturn(Optional.of(lesson));
+
+        assertThatThrownBy(() -> homeworkService.createHomework(
+                "Учебник, стр.666, упр.999",
+                dueDate,
+                lessonId,
+                academicYear,
+                null
+        ))
+                .isInstanceOf(InvalidDueDateException.class)
+                .extracting(
+                        ex -> ((InvalidDueDateException) ex).getReason())
+                .isEqualTo(InvalidDueDateException.Reason.BEFORE_LESSON);
+
+
+        verifyNoInteractions(homeworkRepository);
+    }
+
+    @Test
+    void createHomework_shouldThrow_whenDueDateIsAfterTermEnd() {
+        LocalDate dueDate = LocalDate.of(2026, 3, 21);
+        Long lessonId = 1L;
+        String academicYear = AcademicYearUtil.getCurrentAcademicYear();
+        Term term = new Term(
+                "2 четверть",
+                LocalDate.of(2026, 1, 10),
+                LocalDate.of(2026, 3, 20),
+                academicYear
+        );
+        Lesson lesson = Lesson.builder()
+                .id(lessonId)
+                .startTime(LocalDateTime.of(2026, 1, 12, 8, 30))
+                .term(term)
+                .build();
+
+        when(lessonRepository.findByIdAndAcademicYear(lessonId, academicYear))
+                .thenReturn(Optional.of(lesson));
+
+        assertThatThrownBy(() -> homeworkService.createHomework(
+                "Учебник, стр.666, упр.999",
+                dueDate,
+                lessonId,
+                academicYear,
+                null
+        ))
+                .isInstanceOf(InvalidDueDateException.class)
+                .extracting(
+                        ex -> ((InvalidDueDateException) ex).getReason())
+                .isEqualTo(InvalidDueDateException.Reason.AFTER_TERM_END);
+
+
+        verifyNoInteractions(homeworkRepository);
+    }
+
+    @Test
     void createHomework_shouldThrow_whenHomeworkExists() {
         Long lessonId = 1L;
         String academicYear = AcademicYearUtil.getCurrentAcademicYear();
-        Lesson lesson = Lesson.builder().id(lessonId).build();
+
+        Term term = new Term(
+                "2 четверть",
+                LocalDate.of(2026, 1, 10),
+                LocalDate.of(2026, 3, 20),
+                academicYear
+        );
+
+        Lesson lesson = Lesson.builder().
+                id(lessonId)
+                .startTime(LocalDateTime.of(2026, 1, 12, 8, 30))
+                .term(term)
+                .build();
 
         when(lessonRepository.findByIdAndAcademicYear(lessonId, academicYear))
                 .thenReturn(Optional.of(lesson));
@@ -103,7 +199,7 @@ class HomeworkServiceTest {
 
         assertThatThrownBy(() -> homeworkService.createHomework(
                 "Учебник, стр.666, упр.999",
-                LocalDate.of(2026, 1, 2),
+                LocalDate.of(2026, 1, 21),
                 lessonId,
                 academicYear,
                 1L
@@ -120,8 +216,18 @@ class HomeworkServiceTest {
         Long lessonId = 1L;
         String academicYear = AcademicYearUtil.getCurrentAcademicYear();
         User teacher = User.builder().id(1L).build();
+
+        Term term = new Term(
+                "2 четверть",
+                LocalDate.of(2026, 1, 10),
+                LocalDate.of(2026, 3, 20),
+                academicYear
+        );
+
         Lesson lesson = Lesson.builder()
                 .teacher(teacher)
+                .startTime(LocalDateTime.of(2026, 1, 12, 8, 30))
+                .term(term)
                 .build();
         Long currentUserId = 2L;
 
@@ -131,7 +237,7 @@ class HomeworkServiceTest {
 
         assertThatThrownBy(() -> homeworkService.createHomework(
                 "Учебник, стр.666, упр.999",
-                LocalDate.of(2026, 1, 2),
+                LocalDate.of(2026, 1, 21),
                 lessonId,
                 academicYear,
                 currentUserId
@@ -148,9 +254,19 @@ class HomeworkServiceTest {
         Long lessonId = 1L;
         String academicYear = AcademicYearUtil.getCurrentAcademicYear();
         User teacher = User.builder().id(1L).build();
+
+        Term term = new Term(
+                "2 четверть",
+                LocalDate.of(2026, 1, 10),
+                LocalDate.of(2026, 3, 20),
+                academicYear
+        );
+
         Lesson lesson = Lesson.builder()
                 .teacher(teacher)
+                .startTime(LocalDateTime.of(2026, 1, 12, 8, 30))
                 .status(LessonStatus.CANCELLED)
+                .term(term)
                 .build();
         Long currentUserId = 1L;
 
@@ -160,7 +276,7 @@ class HomeworkServiceTest {
 
         assertThatThrownBy(() -> homeworkService.createHomework(
                 "Учебник, стр.666, упр.999",
-                LocalDate.of(2026, 1, 2),
+                LocalDate.of(2026, 1, 21),
                 lessonId,
                 academicYear,
                 currentUserId
@@ -175,20 +291,29 @@ class HomeworkServiceTest {
     @Test
     void updateHomework_shouldUpdateDescriptionAndDueDate_whenBothProvided() {
         String newDescription = "Учебник, стр.555, упр.777";
-        LocalDate newDueDate = LocalDate.of(2026, 2, 5);
+        LocalDate newDueDate = LocalDate.of(2026, 2, 14);
         Long currentUserId = 11L;
+        String academicYear = AcademicYearUtil.getCurrentAcademicYear();
+        Term term = new Term(
+                "2 четверть",
+                LocalDate.of(2026, 1, 10),
+                LocalDate.of(2026, 3, 20),
+                academicYear
+        );
 
         User teacher = User.builder().id(11L).build();
 
         Lesson lesson = Lesson.builder()
                 .teacher(teacher)
+                .startTime(LocalDateTime.of(2026, 2, 12, 8, 30))
                 .status(LessonStatus.SCHEDULED)
+                .term(term)
                 .build();
 
         Homework homework = Homework.builder()
                 .id(2L)
                 .description("Учебник, стр.666, упр.999")
-                .dueDate(LocalDate.of(2026, 1, 2))
+                .dueDate(LocalDate.of(2026, 2, 13))
                 .lesson(lesson)
                 .build();
 
@@ -254,12 +379,22 @@ class HomeworkServiceTest {
         LocalDate oldDueDate = LocalDate.of(2026, 1, 2);
         LocalDate newDueDate = LocalDate.of(2026, 2, 5);
         Long currentUserId = 11L;
+        String academicYear = AcademicYearUtil.getCurrentAcademicYear();
 
         User teacher = User.builder().id(11L).build();
+
+        Term term = new Term(
+                "2 четверть",
+                LocalDate.of(2026, 1, 10),
+                LocalDate.of(2026, 3, 20),
+                academicYear
+        );
 
         Lesson lesson = Lesson.builder()
                 .teacher(teacher)
                 .status(LessonStatus.SCHEDULED)
+                .startTime(LocalDateTime.of(2026, 1, 12, 8, 30))
+                .term(term)
                 .build();
 
         Homework homework = Homework.builder()
@@ -330,6 +465,58 @@ class HomeworkServiceTest {
         )).isInstanceOf(AccessDeniedException.class);
 
         verify(homeworkRepository).findByIdWithDetails(homework.getId());
+    }
+
+    @Test
+    void updateHomework_shouldThrow_whenNewDueDateIsBeforeLesson() {
+        String newDescription = "Учебник, стр.555, упр.777";
+        LocalDate newDueDate = LocalDate.of(2026, 2, 11);
+        Long currentUserId = 11L;
+        Long lessonId = 22L;
+        String academicYear = AcademicYearUtil.getCurrentAcademicYear();
+        Term term = new Term(
+                "2 четверть",
+                LocalDate.of(2026, 1, 10),
+                LocalDate.of(2026, 3, 20),
+                academicYear
+        );
+
+        User teacher = User.builder().id(11L).build();
+
+        Lesson lesson = Lesson.builder()
+                .id(lessonId)
+                .teacher(teacher)
+                .startTime(LocalDateTime.of(2026, 2, 12, 8, 30))
+                .status(LessonStatus.SCHEDULED)
+                .term(term)
+                .build();
+
+        Homework homework = Homework.builder()
+                .id(12L)
+                .description("Учебник, стр.666, упр.999")
+                .dueDate(LocalDate.of(2026, 2, 13))
+                .lesson(lesson)
+                .build();
+
+        when(homeworkRepository.findByIdWithDetails(homework.getId()))
+                .thenReturn(Optional.of(homework));
+
+        assertThatThrownBy(() -> homeworkService.updateHomework(
+                homework.getId(),
+                newDescription,
+                newDueDate,
+                currentUserId
+        ))
+                .isInstanceOf(InvalidDueDateException.class)
+                .extracting(
+                        ex -> ((InvalidDueDateException) ex).getReason())
+                .isEqualTo(InvalidDueDateException.Reason.BEFORE_LESSON);
+
+        assertThat(homework.getDescription()).isEqualTo(newDescription);
+        assertThat(homework.getDueDate()).isEqualTo(LocalDate.of(2026, 2, 13));
+
+        verify(homeworkRepository).findByIdWithDetails(homework.getId());
+        verifyNoMoreInteractions(homeworkRepository);
     }
 
     @Test
