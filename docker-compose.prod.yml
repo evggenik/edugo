@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     image: evvgen/edugo:latest
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_URL: ${DB_URL}
