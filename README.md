@@ -4,6 +4,8 @@
 
 EduGo is a school diary platform designed to help teachers, students, and parents stay connected and informed about academic progress.
 
+🔗 [Live API docs (Swagger UI)](https://api-edugo.evggen.site/api/v1/swagger-ui/index.html)
+
 ## Motivation
 
 The idea of creating a school diary application first came to me around 2010. At that time I was working as a school teacher and building websites with Joomla CMS. I was fascinated by the possibilities it offered. Among the available plugins there was something similar to a school register, and I immediately thought about using it for my own school.
